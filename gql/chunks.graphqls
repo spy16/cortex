@@ -1,0 +1,86 @@
+scalar Time
+
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+
+schema {
+    query: ChunkQuery
+    mutation: ChunkMutation
+}
+
+"Chunk represents a piece of information."
+type Chunk {
+    id: String!
+    author_id: String!
+    author: User @goField(forceResolver: true)
+    created_at: Time!
+    updated_at: Time!
+
+    # relation with other chunks.
+    parent: String
+    next_sibling: String
+    prev_sibling: String
+
+    content: String!
+    content_type: ContentType!
+
+    children: [Chunk!] @goField(forceResolver: true)
+}
+
+type ChunkQuery {
+    """
+    Fetch user by id.
+    """
+    user(id: String!): User!
+
+    """
+    Fetch chunk by its identifier.
+    """
+    chunk(id: String!): Chunk!
+}
+
+type ChunkMutation {
+    "Register a new user. ID must be globally unique."
+    registerUser(req: UserRegistrationRequest!): User!
+
+    "Creates a new chunk based on the given input."
+    createChunk(request: CreateRequest!): Chunk
+
+    "Update the content, content-type, etc. of a chunk."
+    updateChunk(id: String!, request: UpdateRequest!): Chunk
+
+    "Deletes a chunk by its identifier. All children will be deleted."
+    deleteChunk(id: String!): Chunk
+}
+
+input UpdateRequest {
+    content: String
+    content_type: ContentType
+    parent_id: String
+    prev_sibling: String
+}
+
+input CreateRequest {
+    id: String!
+    content: String!
+    author_id: String!
+    content_type: ContentType
+    parent_id: String
+    prev_sibling: String
+}
+
+enum ContentType {
+    TEXT,
+    LINK,
+}
+
+type User {
+    id: String!
+    name: String!
+    created_at: Time!
+    updated_at: Time!
+}
+
+input UserRegistrationRequest {
+    id: String!
+    name: String!
+}

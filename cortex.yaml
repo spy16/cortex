@@ -1,0 +1,7 @@
+port: 8081
+log_level: debug
+log_format: text
+
+database: 'postgresql://localhost:5432/chunkstore?sslmode=disable&user=postgres'
+# database: ':memory:'
+
