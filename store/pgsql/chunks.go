@@ -8,15 +8,14 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 
-	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
-func (st *PostgresQL) Get(ctx context.Context, id string) (*chunk.Chunk, error) {
+func (st *PostgresQL) Get(ctx context.Context, id string) (*block.Chunk, error) {
 	return getChunk(ctx, st.db, id)
 }
 
-func (st *PostgresQL) List(ctx context.Context, opts chunk.ListOptions) ([]chunk.Chunk, error) {
+func (st *PostgresQL) List(ctx context.Context, opts block.ListOptions) ([]block.Chunk, error) {
 	q := sq.Select("*").
 		From(tableChunks).
 		PlaceholderFormat(sq.Dollar)
@@ -35,7 +34,7 @@ func (st *PostgresQL) List(ctx context.Context, opts chunk.ListOptions) ([]chunk
 		return nil, err
 	}
 
-	var res []chunk.Chunk
+	var res []block.Chunk
 	for rows.Next() {
 		var rec chunkRecord
 		if err := rows.Scan(&rec.ID, &rec.Author, &rec.CreatedAt, &rec.UpdatedAt, &rec.ParentID,
@@ -52,7 +51,7 @@ func (st *PostgresQL) List(ctx context.Context, opts chunk.ListOptions) ([]chunk
 	return res, nil
 }
 
-func (st *PostgresQL) Create(ctx context.Context, c chunk.Chunk) error {
+func (st *PostgresQL) Create(ctx context.Context, c block.Chunk) error {
 	rec := newChunkRecord(c)
 
 	ensureUser := txFn(func(ctx context.Context, tx *sql.Tx) error {
@@ -86,7 +85,7 @@ func (st *PostgresQL) Create(ctx context.Context, c chunk.Chunk) error {
 	return st.withTx(ctx, ensureUser, createChunk)
 }
 
-func (st *PostgresQL) Update(ctx context.Context, id string, updates chunk.Updates) (*chunk.Chunk, error) {
+func (st *PostgresQL) Update(ctx context.Context, id string, updates block.Updates) (*block.Chunk, error) {
 	q := sq.Update(tableChunks).
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
@@ -116,8 +115,8 @@ func (st *PostgresQL) Update(ctx context.Context, id string, updates chunk.Updat
 	return getChunk(ctx, st.db, id)
 }
 
-func (st *PostgresQL) Delete(ctx context.Context, id string) (*chunk.Chunk, error) {
-	var c *chunk.Chunk
+func (st *PostgresQL) Delete(ctx context.Context, id string) (*block.Chunk, error) {
+	var c *block.Chunk
 
 	checkCount := func(ctx context.Context, tx *sql.Tx) error {
 		q := sq.Select("count(*)").
@@ -155,7 +154,7 @@ func (st *PostgresQL) Delete(ctx context.Context, id string) (*chunk.Chunk, erro
 	return c, nil
 }
 
-func getChunk(ctx context.Context, r sq.BaseRunner, id string) (*chunk.Chunk, error) {
+func getChunk(ctx context.Context, r sq.BaseRunner, id string) (*block.Chunk, error) {
 	var rec chunkRecord
 	q := sq.Select("id", "author", "created_at", "updated_at", "parent_id",
 		"prev_sibling_id", "next_sibling_id", "content", "content_type").
@@ -175,7 +174,7 @@ func getChunk(ctx context.Context, r sq.BaseRunner, id string) (*chunk.Chunk, er
 	return rec.toChunk(), nil
 }
 
-func newChunkRecord(c chunk.Chunk) (rec chunkRecord) {
+func newChunkRecord(c block.Chunk) (rec chunkRecord) {
 	return chunkRecord{
 		ID:            c.ID,
 		Author:        c.Author,
@@ -203,8 +202,8 @@ type chunkRecord struct {
 	ContentType string `db:"content_type"`
 }
 
-func (cr chunkRecord) toChunk() *chunk.Chunk {
-	return &chunk.Chunk{
+func (cr chunkRecord) toChunk() *block.Chunk {
+	return &block.Chunk{
 		ID:        cr.ID,
 		Author:    cr.Author,
 		CreatedAt: cr.CreatedAt,

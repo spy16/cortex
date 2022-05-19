@@ -1,10 +1,8 @@
 package model
 
-import (
-	"github.com/chunked-app/cortex/chunk"
-)
+import "github.com/chunked-app/cortex/block"
 
-func ChunkModelFrom(c chunk.Chunk) *Chunk {
+func ChunkModelFrom(c block.Chunk) *Chunk {
 	res := &Chunk{
 		ID:          c.ID,
 		AuthorID:    c.Author,

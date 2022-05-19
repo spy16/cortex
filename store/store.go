@@ -3,17 +3,16 @@ package store
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/store/pgsql"
 	"github.com/chunked-app/cortex/user"
 )
 
 var (
-	_ chunk.Store = (*InMemory)(nil)
-	_ chunk.Store = (*pgsql.PostgresQL)(nil)
+	_ block.Store = (*InMemory)(nil)
+	_ block.Store = (*pgsql.PostgresQL)(nil)
 )
 
-func Open(spec string) (chunk.Store, user.Store, error) {
+func Open(spec string) (block.Store, user.Store, error) {
 	if spec == ":memory:" {
 		m := &InMemory{}
 		log.Warnf("using in-memory database")

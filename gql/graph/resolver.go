@@ -3,7 +3,7 @@ package graph
 import (
 	"context"
 
-	"github.com/chunked-app/cortex/chunk"
+	"github.com/chunked-app/cortex/block"
 	"github.com/chunked-app/cortex/user"
 )
 
@@ -24,9 +24,9 @@ type UsersAPI interface {
 }
 
 type ChunksAPI interface {
-	Get(ctx context.Context, id string) (*chunk.Chunk, error)
-	List(ctx context.Context, filter chunk.ListOptions) ([]chunk.Chunk, error)
-	Create(ctx context.Context, c chunk.Chunk) (*chunk.Chunk, error)
-	Update(ctx context.Context, id string, updates chunk.Updates) (*chunk.Chunk, error)
-	Delete(ctx context.Context, id string) (*chunk.Chunk, error)
+	Get(ctx context.Context, id string) (*block.Chunk, error)
+	List(ctx context.Context, filter block.ListOptions) ([]block.Chunk, error)
+	Create(ctx context.Context, c block.Chunk) (*block.Chunk, error)
+	Update(ctx context.Context, id string, updates block.Updates) (*block.Chunk, error)
+	Delete(ctx context.Context, id string) (*block.Chunk, error)
 }

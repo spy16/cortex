@@ -1,4 +1,4 @@
-package chunk
+package block
 
 // Supported entity types within a chunk.
 const (

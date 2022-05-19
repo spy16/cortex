@@ -6,10 +6,11 @@ package graph
 import (
 	"context"
 
-	"github.com/chunked-app/cortex/chunk"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/chunked-app/cortex/block"
 	"github.com/chunked-app/cortex/gql/graph/model"
 	"github.com/chunked-app/cortex/user"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *chunkResolver) Author(ctx context.Context, obj *model.Chunk) (*model.User, error) {
@@ -19,7 +20,7 @@ func (r *chunkResolver) Author(ctx context.Context, obj *model.Chunk) (*model.Us
 func (r *chunkResolver) Children(ctx context.Context, obj *model.Chunk) ([]*model.Chunk, error) {
 	log.Debugf("looking for chunks with parent=%s", obj.ID)
 
-	children, err := r.ChunksAPI.List(ctx, chunk.ListOptions{Parent: obj.ID})
+	children, err := r.ChunksAPI.List(ctx, block.ListOptions{Parent: obj.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +57,7 @@ func (r *chunkMutationResolver) CreateChunk(ctx context.Context, request model.C
 		request.ContentType = &t
 	}
 
-	ch := chunk.Chunk{
+	ch := block.Chunk{
 		ID:      request.ID,
 		Author:  request.AuthorID,
 		Type:    request.ContentType.String(),
@@ -78,7 +79,7 @@ func (r *chunkMutationResolver) CreateChunk(ctx context.Context, request model.C
 }
 
 func (r *chunkMutationResolver) UpdateChunk(ctx context.Context, id string, request model.UpdateRequest) (*model.Chunk, error) {
-	upd := chunk.Updates{}
+	upd := block.Updates{}
 	if request.Content != nil {
 		upd.Content = *request.Content
 	}

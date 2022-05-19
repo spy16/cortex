@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/pkg/errors"
 	"github.com/chunked-app/cortex/user"
 )
@@ -14,7 +13,7 @@ type InMemory struct {
 	users  map[string]user.User
 
 	chunkMu sync.RWMutex
-	chunks  map[string]chunk.Chunk
+	chunks  map[string]block.Chunk
 }
 
 func (st *InMemory) GetUser(ctx context.Context, id string) (*user.User, error) {
@@ -43,7 +42,7 @@ func (st *InMemory) CreateUser(ctx context.Context, u user.User) error {
 	return nil
 }
 
-func (st *InMemory) Get(ctx context.Context, id string) (*chunk.Chunk, error) {
+func (st *InMemory) Get(ctx context.Context, id string) (*block.Chunk, error) {
 	st.chunkMu.RLock()
 	defer st.chunkMu.RUnlock()
 
@@ -54,11 +53,11 @@ func (st *InMemory) Get(ctx context.Context, id string) (*chunk.Chunk, error) {
 	return &c, nil
 }
 
-func (st *InMemory) List(ctx context.Context, opts chunk.ListOptions) ([]chunk.Chunk, error) {
+func (st *InMemory) List(ctx context.Context, opts block.ListOptions) ([]block.Chunk, error) {
 	st.chunkMu.RLock()
 	defer st.chunkMu.RUnlock()
 
-	var res []chunk.Chunk
+	var res []block.Chunk
 	for _, c := range st.chunks {
 		if opts.Parent != "" || c.Parent == opts.Parent {
 			res = append(res, c)
@@ -67,12 +66,12 @@ func (st *InMemory) List(ctx context.Context, opts chunk.ListOptions) ([]chunk.C
 	return res, nil
 }
 
-func (st *InMemory) Create(ctx context.Context, c chunk.Chunk) error {
+func (st *InMemory) Create(ctx context.Context, c block.Chunk) error {
 	st.chunkMu.Lock()
 	defer st.chunkMu.Unlock()
 
 	if st.chunks == nil {
-		st.chunks = map[string]chunk.Chunk{}
+		st.chunks = map[string]block.Chunk{}
 	}
 
 	if _, exists := st.chunks[c.ID]; exists {
@@ -83,7 +82,7 @@ func (st *InMemory) Create(ctx context.Context, c chunk.Chunk) error {
 	return nil
 }
 
-func (st *InMemory) Update(ctx context.Context, id string, updates chunk.Updates) (*chunk.Chunk, error) {
+func (st *InMemory) Update(ctx context.Context, id string, updates block.Updates) (*block.Chunk, error) {
 	st.chunkMu.Lock()
 	defer st.chunkMu.Unlock()
 
@@ -118,7 +117,7 @@ func (st *InMemory) Update(ctx context.Context, id string, updates chunk.Updates
 	return &c, nil
 }
 
-func (st *InMemory) Delete(ctx context.Context, id string) (*chunk.Chunk, error) {
+func (st *InMemory) Delete(ctx context.Context, id string) (*block.Chunk, error) {
 	st.chunkMu.Lock()
 	defer st.chunkMu.Unlock()
 

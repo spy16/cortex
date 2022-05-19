@@ -18,3 +18,5 @@
 .idea/
 .vscode/
 bin/
+expt/
+dist/
