@@ -11,7 +11,9 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql"
+	"github.com/chunked-app/cortex/stores/inmem"
 )
 
 var (
@@ -57,7 +59,11 @@ func cmdServe(ctx context.Context) *cobra.Command {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		cfg := loadConfig(cmd)
 
+		store := &inmem.Store{}
+		api := &chunk.API{Store: store}
+
 		srv := gql.Server{
+			ChunksAPI: api,
 			SystemInfo: map[string]interface{}{
 				"version":    Version,
 				"commit_sha": Commit,

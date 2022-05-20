@@ -13,12 +13,14 @@ import (
 	"github.com/rs/cors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
+	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql/graph"
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
 type Server struct {
 	SystemInfo map[string]interface{}
+	ChunksAPI  *chunk.API
 }
 
 func (srv *Server) Serve(ctx context.Context, addr string) error {
@@ -38,6 +40,7 @@ func (srv *Server) Serve(ctx context.Context, addr string) error {
 	// setup GraphQL schema and handlers.
 	schema := graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
+			ChunksAPI: srv.ChunksAPI,
 			// TODO: inject dependencies.
 		},
 	})

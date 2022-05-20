@@ -19,25 +19,26 @@ type Chunk struct {
 	AuthorID  string    `json:"author_id"`
 	ParentID  *string   `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"Updated_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // CreateRequest can be passed to createChunk mutation to create a new chunk.
 type CreateRequest struct {
-	ID       string  `json:"id"`
-	Kind     Kind    `json:"kind"`
-	Data     string  `json:"data"`
-	Rank     string  `json:"rank"`
-	AuthorID string  `json:"author_id"`
-	ParentID *string `json:"parent_id"`
+	Kind     Kind     `json:"kind"`
+	Data     string   `json:"data"`
+	Rank     *string  `json:"rank"`
+	Tags     []string `json:"tags"`
+	AuthorID string   `json:"author_id"`
+	ParentID *string  `json:"parent_id"`
 }
 
 // UpdateRequest can be passed to updateChunk mutation to modify a chunk.
 type UpdateRequest struct {
-	Kind   *string `json:"kind"`
-	Data   *string `json:"data"`
-	Rank   *string `json:"rank"`
-	Parent *string `json:"parent"`
+	Kind   *string  `json:"kind"`
+	Data   *string  `json:"data"`
+	Rank   *string  `json:"rank"`
+	Tags   []string `json:"tags"`
+	Parent *string  `json:"parent"`
 }
 
 // Kind represents the type of data in a chunk.

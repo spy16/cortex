@@ -16,10 +16,10 @@ type ChunkQuery {
 
 type ChunkMutation {
     "Creates a new chunk based on the given input."
-    createChunk(request: CreateRequest!): Chunk
+    createChunk(req: CreateRequest!): Chunk
 
     "Update the content, content-type, etc. of a chunk."
-    updateChunk(id: String!, request: UpdateRequest!): Chunk
+    updateChunk(id: String!, req: UpdateRequest!): Chunk
 
     "Deletes a chunk by its identifier. All children will be deleted."
     deleteChunk(id: String!): Chunk
@@ -42,7 +42,7 @@ type Chunk {
     author_id: String!
     parent_id: String
     created_at: Time!
-    Updated_at: Time!
+    updated_at: Time!
 }
 
 """
@@ -52,6 +52,7 @@ input UpdateRequest {
     kind: String
     data: String
     rank: String
+    tags: [String!]
     parent: String
 }
 
@@ -59,10 +60,10 @@ input UpdateRequest {
 CreateRequest can be passed to createChunk mutation to create a new chunk.
 """
 input CreateRequest {
-    id: String!
     kind: Kind!
     data: String!
-    rank: String!
+    rank: String
+    tags: [String!]
     author_id: String!
     parent_id: String
 }

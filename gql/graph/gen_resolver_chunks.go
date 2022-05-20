@@ -5,25 +5,67 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql/graph/model"
 )
 
-func (r *chunkMutationResolver) CreateChunk(ctx context.Context, request model.CreateRequest) (*model.Chunk, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *chunkMutationResolver) CreateChunk(ctx context.Context, req model.CreateRequest) (*model.Chunk, error) {
+	d, err := chunk.ParseData(req.Kind.String(), req.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	ch := chunk.Chunk{
+		Data:   d,
+		Tags:   req.Tags,
+		Author: req.AuthorID,
+	}
+
+	if req.Rank != nil {
+		ch.Rank = *req.Rank
+	}
+
+	if req.ParentID != nil {
+		ch.Parent = *req.ParentID
+	}
+
+	createdCh, err := r.ChunksAPI.Create(ctx, ch)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ChunkModelFrom(*createdCh)
 }
 
-func (r *chunkMutationResolver) UpdateChunk(ctx context.Context, id string, request model.UpdateRequest) (*model.Chunk, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *chunkMutationResolver) UpdateChunk(ctx context.Context, id string, req model.UpdateRequest) (*model.Chunk, error) {
+	upd, err := model.UpdatesFrom(req)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedCh, err := r.ChunksAPI.Update(ctx, id, upd)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ChunkModelFrom(*updatedCh)
 }
 
 func (r *chunkMutationResolver) DeleteChunk(ctx context.Context, id string) (*model.Chunk, error) {
-	panic(fmt.Errorf("not implemented"))
+	ch, err := r.ChunksAPI.Delete(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return model.ChunkModelFrom(*ch)
 }
 
 func (r *chunkQueryResolver) Chunk(ctx context.Context, id string) (*model.Chunk, error) {
-	panic(fmt.Errorf("not implemented"))
+	ch, err := r.ChunksAPI.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return model.ChunkModelFrom(*ch)
 }
 
 // ChunkMutation returns ChunkMutationResolver implementation.

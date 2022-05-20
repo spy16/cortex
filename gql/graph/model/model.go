@@ -32,3 +32,33 @@ func ChunkModelFrom(c chunk.Chunk) (*Chunk, error) {
 
 	return res, nil
 }
+
+func UpdatesFrom(request UpdateRequest) (chunk.Updates, error) {
+	var upd chunk.Updates
+
+	if request.Data != nil {
+		if request.Kind == nil {
+			return upd, errors.ErrInvalid.WithMsgf("when updating 'data', 'kind' must be specified")
+		}
+
+		d, err := chunk.ParseData(*request.Kind, *request.Data)
+		if err != nil {
+			return upd, err
+		}
+		upd.Data = d
+	}
+
+	if request.Parent != nil {
+		upd.Parent = *request.Parent
+	}
+
+	if request.Rank != nil {
+		upd.Rank = *request.Rank
+	}
+
+	if len(request.Tags) > 0 {
+		upd.Tags = request.Tags
+	}
+
+	return upd, nil
+}

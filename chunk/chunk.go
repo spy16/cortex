@@ -1,7 +1,9 @@
 package chunk
 
 import (
+	"context"
 	"encoding/json"
+	"math/rand"
 	"regexp"
 	"strings"
 	"time"
@@ -18,7 +20,18 @@ const (
 	KindImage = "IMAGE"
 )
 
+const idCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
 var idPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
+
+// Store implementation is responsible for persisting chunks.
+type Store interface {
+	Get(ctx context.Context, id string) (*Chunk, error)
+	List(ctx context.Context, opts ListOptions) ([]Chunk, error)
+	Create(ctx context.Context, c Chunk) error
+	Update(ctx context.Context, id string, upd Updates) (*Chunk, error)
+	Delete(ctx context.Context, id string) (*Chunk, error)
+}
 
 // Chunk represents a piece of information written down by a user.
 type Chunk struct {
@@ -72,11 +85,14 @@ func ParseData(kind, data string) (Data, error) {
 		return nil, errors.ErrInvalid.
 			WithMsgf("failed to interpret data as '%s'", kind).
 			WithCausef(err.Error())
+	} else if err := into.Validate(); err != nil {
+		return nil, err
 	}
 	return into, nil
 }
 
 func (c *Chunk) Validate() error {
+	c.Tags = cleanTags(c.Tags)
 	if c.CreatedAt.IsZero() {
 		c.CreatedAt = time.Now()
 		c.UpdatedAt = c.CreatedAt
@@ -107,6 +123,27 @@ func (c *Chunk) Validate() error {
 	return nil
 }
 
+func (c *Chunk) Apply(upd Updates) {
+	if upd.Data != nil {
+		c.Kind = upd.Data.Kind()
+		c.Data = upd.Data
+	}
+
+	if upd.Rank != "" {
+		c.Rank = upd.Rank
+	}
+
+	if upd.Parent != "" {
+		c.Parent = upd.Parent
+	}
+
+	if upd.Tags != nil {
+		c.Tags = cleanTags(upd.Tags)
+	}
+}
+
+func (c *Chunk) genID() { c.ID = randString(5, idCharset) }
+
 func validateID(id string, optional bool) error {
 	if optional && id == "" {
 		return nil
@@ -118,4 +155,30 @@ func validateID(id string, optional bool) error {
 		return errors.ErrInvalid.WithMsgf("id must match pattern '%s'", idPattern)
 	}
 	return nil
+}
+
+func randString(n int, charset string) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+func cleanTags(tags []string) []string {
+	set := map[string]struct{}{}
+
+	var res []string
+	for _, tag := range tags {
+		tag = strings.TrimSpace(tag)
+		if tag == "" {
+			continue
+		}
+
+		if _, exists := set[tag]; !exists {
+			res = append(res, tag)
+			set[tag] = struct{}{}
+		}
+	}
+	return res
 }
