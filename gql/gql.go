@@ -16,10 +16,12 @@ import (
 	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql/graph"
 	"github.com/chunked-app/cortex/pkg/errors"
+	"github.com/chunked-app/cortex/user"
 )
 
 type Server struct {
 	SystemInfo map[string]interface{}
+	UsersAPI   *user.API
 	ChunksAPI  *chunk.API
 }
 
@@ -40,8 +42,8 @@ func (srv *Server) Serve(ctx context.Context, addr string) error {
 	// setup GraphQL schema and handlers.
 	schema := graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
+			UsersAPI:  srv.UsersAPI,
 			ChunksAPI: srv.ChunksAPI,
-			// TODO: inject dependencies.
 		},
 	})
 	gqlServer := handler.NewDefaultServer(schema)

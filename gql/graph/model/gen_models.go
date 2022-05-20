@@ -32,6 +32,11 @@ type CreateRequest struct {
 	ParentID *string  `json:"parent_id"`
 }
 
+type RegisterUserRequest struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 // UpdateRequest can be passed to updateChunk mutation to modify a chunk.
 type UpdateRequest struct {
 	Kind   *string  `json:"kind"`
@@ -39,6 +44,15 @@ type UpdateRequest struct {
 	Rank   *string  `json:"rank"`
 	Tags   []string `json:"tags"`
 	Parent *string  `json:"parent"`
+}
+
+// User represents a user of the system who can create & manage chunks.
+type User struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Chunks    []*Chunk  `json:"chunks"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Kind represents the type of data in a chunk.

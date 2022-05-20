@@ -5,10 +5,14 @@ import (
 	"strings"
 
 	"github.com/chunked-app/cortex/pkg/errors"
+	"github.com/chunked-app/cortex/user"
 )
 
 // API provides functions to manage chunks.
-type API struct{ Store Store }
+type API struct {
+	Store Store
+	Users *user.API
+}
 
 func (api *API) Get(ctx context.Context, id string) (*Chunk, error) {
 	id = strings.TrimSpace(id)
@@ -38,6 +42,10 @@ func (api *API) List(ctx context.Context, opts ListOptions) ([]Chunk, error) {
 func (api *API) Create(ctx context.Context, ch Chunk) (*Chunk, error) {
 	ch.genID()
 	if err := ch.Validate(); err != nil {
+		return nil, err
+	}
+
+	if _, err := api.Users.User(ctx, ch.Author); err != nil {
 		return nil, err
 	}
 
@@ -83,9 +91,11 @@ func (api *API) Delete(ctx context.Context, id string) (*Chunk, error) {
 
 type ListOptions struct {
 	Parent string `json:"parent"`
+	Author string `json:"author"`
 }
 
 func (opts ListOptions) IsMatch(ch Chunk) bool {
 	parentMatch := opts.Parent == "" || ch.Parent == opts.Parent
-	return parentMatch
+	authorMatch := opts.Author == "" || ch.Author == opts.Author
+	return parentMatch && authorMatch
 }

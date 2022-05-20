@@ -8,7 +8,20 @@ import (
 
 	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql/graph/model"
+	"github.com/chunked-app/cortex/user"
 )
+
+func (r *chunkMutationResolver) RegisterUser(ctx context.Context, req model.RegisterUserRequest) (*model.User, error) {
+	u := user.User{
+		ID:   req.ID,
+		Name: req.Name,
+	}
+	createdUser, err := r.UsersAPI.Register(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	return model.UserFrom(*createdUser)
+}
 
 func (r *chunkMutationResolver) CreateChunk(ctx context.Context, req model.CreateRequest) (*model.Chunk, error) {
 	d, err := chunk.ParseData(req.Kind.String(), req.Data)
@@ -35,7 +48,7 @@ func (r *chunkMutationResolver) CreateChunk(ctx context.Context, req model.Creat
 		return nil, err
 	}
 
-	return model.ChunkModelFrom(*createdCh)
+	return model.ChunkFrom(*createdCh)
 }
 
 func (r *chunkMutationResolver) UpdateChunk(ctx context.Context, id string, req model.UpdateRequest) (*model.Chunk, error) {
@@ -49,7 +62,7 @@ func (r *chunkMutationResolver) UpdateChunk(ctx context.Context, id string, req 
 		return nil, err
 	}
 
-	return model.ChunkModelFrom(*updatedCh)
+	return model.ChunkFrom(*updatedCh)
 }
 
 func (r *chunkMutationResolver) DeleteChunk(ctx context.Context, id string) (*model.Chunk, error) {
@@ -57,7 +70,7 @@ func (r *chunkMutationResolver) DeleteChunk(ctx context.Context, id string) (*mo
 	if err != nil {
 		return nil, err
 	}
-	return model.ChunkModelFrom(*ch)
+	return model.ChunkFrom(*ch)
 }
 
 func (r *chunkQueryResolver) Chunk(ctx context.Context, id string) (*model.Chunk, error) {
@@ -65,7 +78,34 @@ func (r *chunkQueryResolver) Chunk(ctx context.Context, id string) (*model.Chunk
 	if err != nil {
 		return nil, err
 	}
-	return model.ChunkModelFrom(*ch)
+	return model.ChunkFrom(*ch)
+}
+
+func (r *chunkQueryResolver) User(ctx context.Context, id string) (*model.User, error) {
+	u, err := r.UsersAPI.User(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return model.UserFrom(*u)
+}
+
+func (r *userResolver) Chunks(ctx context.Context, obj *model.User) ([]*model.Chunk, error) {
+	opts := chunk.ListOptions{Author: obj.ID}
+
+	chunks, err := r.ChunksAPI.List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*model.Chunk
+	for _, ch := range chunks {
+		m, err := model.ChunkFrom(ch)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, m)
+	}
+	return res, nil
 }
 
 // ChunkMutation returns ChunkMutationResolver implementation.
@@ -74,5 +114,9 @@ func (r *Resolver) ChunkMutation() ChunkMutationResolver { return &chunkMutation
 // ChunkQuery returns ChunkQueryResolver implementation.
 func (r *Resolver) ChunkQuery() ChunkQueryResolver { return &chunkQueryResolver{r} }
 
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 type chunkMutationResolver struct{ *Resolver }
 type chunkQueryResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }

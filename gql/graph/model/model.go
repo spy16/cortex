@@ -5,9 +5,20 @@ import (
 
 	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/pkg/errors"
+	"github.com/chunked-app/cortex/user"
 )
 
-func ChunkModelFrom(c chunk.Chunk) (*Chunk, error) {
+func UserFrom(u user.User) (*User, error) {
+	return &User{
+		ID:        u.ID,
+		Name:      u.Name,
+		Chunks:    nil,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+	}, nil
+}
+
+func ChunkFrom(c chunk.Chunk) (*Chunk, error) {
 	b, err := json.Marshal(c.Data)
 	if err != nil {
 		return nil, errors.ErrInternal.

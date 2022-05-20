@@ -14,6 +14,7 @@ import (
 	"github.com/chunked-app/cortex/chunk"
 	"github.com/chunked-app/cortex/gql"
 	"github.com/chunked-app/cortex/stores/inmem"
+	"github.com/chunked-app/cortex/user"
 )
 
 var (
@@ -60,10 +61,12 @@ func cmdServe(ctx context.Context) *cobra.Command {
 		cfg := loadConfig(cmd)
 
 		store := &inmem.Store{}
-		api := &chunk.API{Store: store}
+		usersAPI := &user.API{Store: store}
+		chunksAPI := &chunk.API{Store: store, Users: usersAPI}
 
 		srv := gql.Server{
-			ChunksAPI: api,
+			UsersAPI:  usersAPI,
+			ChunksAPI: chunksAPI,
 			SystemInfo: map[string]interface{}{
 				"version":    Version,
 				"commit_sha": Commit,

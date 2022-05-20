@@ -35,6 +35,8 @@ func (u *User) Validate() error {
 	return nil
 }
 
+func (u *User) IsEmpty() bool { return u.ID == "" }
+
 func With(ctx context.Context, u User) context.Context {
 	return context.WithValue(ctx, userKey, u)
 }

@@ -12,17 +12,24 @@ type ChunkQuery {
     Fetch chunk by its identifier.
     """
     chunk(id: String!): Chunk!
+
+    """
+    Fetch user by identifier.
+    """
+    user(id: String!): User!
 }
 
 type ChunkMutation {
+    registerUser(req: RegisterUserRequest!): User!
+
     "Creates a new chunk based on the given input."
-    createChunk(req: CreateRequest!): Chunk
+    createChunk(req: CreateRequest!): Chunk!
 
     "Update the content, content-type, etc. of a chunk."
-    updateChunk(id: String!, req: UpdateRequest!): Chunk
+    updateChunk(id: String!, req: UpdateRequest!): Chunk!
 
     "Deletes a chunk by its identifier. All children will be deleted."
-    deleteChunk(id: String!): Chunk
+    deleteChunk(id: String!): Chunk!
 }
 
 "Kind represents the type of data in a chunk."
@@ -41,6 +48,17 @@ type Chunk {
     tags: [String!]
     author_id: String!
     parent_id: String
+    created_at: Time!
+    updated_at: Time!
+}
+
+"""
+User represents a user of the system who can create & manage chunks.
+"""
+type User {
+    id: String!
+    name: String!
+    chunks: [Chunk!] @goField(forceResolver: true)
     created_at: Time!
     updated_at: Time!
 }
@@ -66,4 +84,9 @@ input CreateRequest {
     tags: [String!]
     author_id: String!
     parent_id: String
+}
+
+input RegisterUserRequest {
+    id: String!
+    name: String!
 }
