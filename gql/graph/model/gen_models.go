@@ -11,84 +11,75 @@ import (
 
 // Chunk represents a piece of information.
 type Chunk struct {
-	ID          string      `json:"id"`
-	AuthorID    string      `json:"author_id"`
-	Author      *User       `json:"author"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	Parent      *string     `json:"parent"`
-	NextSibling *string     `json:"next_sibling"`
-	PrevSibling *string     `json:"prev_sibling"`
-	Content     string      `json:"content"`
-	ContentType ContentType `json:"content_type"`
-	Children    []*Chunk    `json:"children"`
-}
-
-type CreateRequest struct {
-	ID          string       `json:"id"`
-	Content     string       `json:"content"`
-	AuthorID    string       `json:"author_id"`
-	ContentType *ContentType `json:"content_type"`
-	ParentID    *string      `json:"parent_id"`
-	PrevSibling *string      `json:"prev_sibling"`
-}
-
-type UpdateRequest struct {
-	Content     *string      `json:"content"`
-	ContentType *ContentType `json:"content_type"`
-	ParentID    *string      `json:"parent_id"`
-	PrevSibling *string      `json:"prev_sibling"`
-}
-
-type User struct {
 	ID        string    `json:"id"`
-	Name      string    `json:"name"`
+	Kind      string    `json:"kind"`
+	Rank      string    `json:"rank"`
+	Data      string    `json:"data"`
+	Tags      []string  `json:"tags"`
+	AuthorID  string    `json:"author_id"`
+	ParentID  *string   `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt time.Time `json:"Updated_at"`
 }
 
-type UserRegistrationRequest struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+// CreateRequest can be passed to createChunk mutation to create a new chunk.
+type CreateRequest struct {
+	ID       string  `json:"id"`
+	Kind     Kind    `json:"kind"`
+	Data     string  `json:"data"`
+	Rank     string  `json:"rank"`
+	AuthorID string  `json:"author_id"`
+	ParentID *string `json:"parent_id"`
 }
 
-type ContentType string
+// UpdateRequest can be passed to updateChunk mutation to modify a chunk.
+type UpdateRequest struct {
+	Kind   *string `json:"kind"`
+	Data   *string `json:"data"`
+	Rank   *string `json:"rank"`
+	Parent *string `json:"parent"`
+}
+
+// Kind represents the type of data in a chunk.
+type Kind string
 
 const (
-	ContentTypeText ContentType = "TEXT"
-	ContentTypeLink ContentType = "LINK"
+	KindNote  Kind = "NOTE"
+	KindImage Kind = "IMAGE"
+	KindTodo  Kind = "TODO"
 )
 
-var AllContentType = []ContentType{
-	ContentTypeText,
-	ContentTypeLink,
+var AllKind = []Kind{
+	KindNote,
+	KindImage,
+	KindTodo,
 }
 
-func (e ContentType) IsValid() bool {
+func (e Kind) IsValid() bool {
 	switch e {
-	case ContentTypeText, ContentTypeLink:
+	case KindNote, KindImage, KindTodo:
 		return true
 	}
 	return false
 }
 
-func (e ContentType) String() string {
+func (e Kind) String() string {
 	return string(e)
 }
 
-func (e *ContentType) UnmarshalGQL(v interface{}) error {
+func (e *Kind) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = ContentType(str)
+	*e = Kind(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ContentType", str)
+		return fmt.Errorf("%s is not a valid Kind", str)
 	}
 	return nil
 }
 
-func (e ContentType) MarshalGQL(w io.Writer) {
+func (e Kind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"firebase.google.com/go/v4/auth"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
@@ -18,14 +17,7 @@ import (
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
-type Authenticator interface {
-	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
-}
-
 type Server struct {
-	Authn      Authenticator
-	UsersAPI   graph.UsersAPI
-	ChunksAPI  graph.ChunksAPI
 	SystemInfo map[string]interface{}
 }
 
@@ -33,7 +25,6 @@ func (srv *Server) Serve(ctx context.Context, addr string) error {
 	router := chi.NewRouter()
 	router.Use(
 		requestLogger(),
-		verifyToken(srv.Authn),
 		cors.New(cors.Options{
 			AllowedOrigins:   []string{"*"},
 			AllowCredentials: true,
@@ -47,8 +38,7 @@ func (srv *Server) Serve(ctx context.Context, addr string) error {
 	// setup GraphQL schema and handlers.
 	schema := graph.NewExecutableSchema(graph.Config{
 		Resolvers: &graph.Resolver{
-			UsersAPI:  srv.UsersAPI,
-			ChunksAPI: srv.ChunksAPI,
+			// TODO: inject dependencies.
 		},
 	})
 	gqlServer := handler.NewDefaultServer(schema)

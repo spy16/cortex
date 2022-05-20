@@ -1,28 +1,34 @@
 package model
 
-import "github.com/chunked-app/cortex/block"
+import (
+	"encoding/json"
 
-func ChunkModelFrom(c block.Chunk) *Chunk {
+	"github.com/chunked-app/cortex/chunk"
+	"github.com/chunked-app/cortex/pkg/errors"
+)
+
+func ChunkModelFrom(c chunk.Chunk) (*Chunk, error) {
+	b, err := json.Marshal(c.Data)
+	if err != nil {
+		return nil, errors.ErrInternal.
+			WithMsgf("failed to marshal chunk data").
+			WithCausef(err.Error())
+	}
+
 	res := &Chunk{
-		ID:          c.ID,
-		AuthorID:    c.Author,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
-		Content:     c.Content,
-		ContentType: ContentType(c.Type),
+		ID:        c.ID,
+		Rank:      c.Rank,
+		Kind:      c.Kind,
+		Data:      string(b),
+		Tags:      c.Tags,
+		AuthorID:  c.Author,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
 	}
 
 	if c.Parent != "" {
-		res.Parent = &c.Parent
+		res.ParentID = &c.Parent
 	}
 
-	if c.NextSibling != "" {
-		res.NextSibling = &c.NextSibling
-	}
-
-	if c.PrevSibling != "" {
-		res.PrevSibling = &c.PrevSibling
-	}
-
-	return res
+	return res, nil
 }

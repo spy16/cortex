@@ -6,8 +6,8 @@ type ImageData struct {
 	Caption string `json:"caption"`
 }
 
-func (i ImageData) Type() string { return TypeImage }
+func (data ImageData) Kind() string { return KindImage }
 
-func (i ImageData) Validate() error {
+func (data *ImageData) Validate() error {
 	return nil
 }

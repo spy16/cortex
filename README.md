@@ -18,6 +18,7 @@ type Chunk struct {
 	ID        string    // A unique 1-12 character string identifier for the chunk
 	Type      string    // One of reminder, text, image, snippet, etc.
 	Data      string    // content of the chunk formatted as per type.
+	Rank      string    // A string for ranking chunks (lexical sort)
 	Score     int64     // A priority score to order neighboring chunks.
 	Parent    string    // identifier for the parent chunk.
 	Author    string    // ID of the user who created it.

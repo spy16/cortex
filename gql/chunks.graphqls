@@ -7,31 +7,7 @@ schema {
     mutation: ChunkMutation
 }
 
-"Chunk represents a piece of information."
-type Chunk {
-    id: String!
-    author_id: String!
-    author: User @goField(forceResolver: true)
-    created_at: Time!
-    updated_at: Time!
-
-    # relation with other chunks.
-    parent: String
-    next_sibling: String
-    prev_sibling: String
-
-    content: String!
-    content_type: ContentType!
-
-    children: [Chunk!] @goField(forceResolver: true)
-}
-
 type ChunkQuery {
-    """
-    Fetch user by id.
-    """
-    user(id: String!): User!
-
     """
     Fetch chunk by its identifier.
     """
@@ -39,9 +15,6 @@ type ChunkQuery {
 }
 
 type ChunkMutation {
-    "Register a new user. ID must be globally unique."
-    registerUser(req: UserRegistrationRequest!): User!
-
     "Creates a new chunk based on the given input."
     createChunk(request: CreateRequest!): Chunk
 
@@ -52,35 +25,44 @@ type ChunkMutation {
     deleteChunk(id: String!): Chunk
 }
 
-input UpdateRequest {
-    content: String
-    content_type: ContentType
-    parent_id: String
-    prev_sibling: String
+"Kind represents the type of data in a chunk."
+enum Kind {
+    NOTE,
+    IMAGE,
+    TODO,
 }
 
+"Chunk represents a piece of information."
+type Chunk {
+    id: String!
+    kind: String!
+    rank: String!
+    data: String!
+    tags: [String!]
+    author_id: String!
+    parent_id: String
+    created_at: Time!
+    Updated_at: Time!
+}
+
+"""
+UpdateRequest can be passed to updateChunk mutation to modify a chunk.
+"""
+input UpdateRequest {
+    kind: String
+    data: String
+    rank: String
+    parent: String
+}
+
+"""
+CreateRequest can be passed to createChunk mutation to create a new chunk.
+"""
 input CreateRequest {
     id: String!
-    content: String!
+    kind: Kind!
+    data: String!
+    rank: String!
     author_id: String!
-    content_type: ContentType
     parent_id: String
-    prev_sibling: String
-}
-
-enum ContentType {
-    TEXT,
-    LINK,
-}
-
-type User {
-    id: String!
-    name: String!
-    created_at: Time!
-    updated_at: Time!
-}
-
-input UserRegistrationRequest {
-    id: String!
-    name: String!
 }

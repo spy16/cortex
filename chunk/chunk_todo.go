@@ -12,8 +12,8 @@ type TodoItem struct {
 	Done bool   `json:"done"`
 }
 
-func (td *TodoData) Type() string { return TypeTodo }
+func (data TodoData) Kind() string { return KindTodo }
 
-func (td *TodoData) Validate() error {
+func (data *TodoData) Validate() error {
 	return nil
 }

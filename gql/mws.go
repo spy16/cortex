@@ -9,14 +9,6 @@ import (
 
 type middleware func(http.Handler) http.Handler
 
-func verifyToken(authn Authenticator) middleware {
-	return func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {
-			h.ServeHTTP(wr, req)
-		})
-	}
-}
-
 func requestLogger() middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(wr http.ResponseWriter, req *http.Request) {

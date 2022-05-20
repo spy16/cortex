@@ -2,20 +2,14 @@ package chunk
 
 import "context"
 
-type API struct {
-	Store interface {
-		Create(ctx context.Context, c Chunk) error
-	}
+type Store interface {
+	Create(ctx context.Context, c Chunk) error
 }
 
-func (api *API) Create(ctx context.Context, c Chunk) (*Chunk, error) {
-	if err := c.Validate(); err != nil {
-		return nil, err
-	}
+type API struct {
+	Store Store
+}
 
-	if err := api.Store.Create(ctx, c); err != nil {
-		return nil, err
-	}
-
-	return &c, nil
+type ListOptions struct {
+	Parent string `json:"parent"`
 }

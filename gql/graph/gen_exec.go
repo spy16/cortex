@@ -37,7 +37,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Chunk() ChunkResolver
 	ChunkMutation() ChunkMutationResolver
 	ChunkQuery() ChunkQueryResolver
 }
@@ -47,52 +46,34 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Chunk struct {
-		Author      func(childComplexity int) int
-		AuthorID    func(childComplexity int) int
-		Children    func(childComplexity int) int
-		Content     func(childComplexity int) int
-		ContentType func(childComplexity int) int
-		CreatedAt   func(childComplexity int) int
-		ID          func(childComplexity int) int
-		NextSibling func(childComplexity int) int
-		Parent      func(childComplexity int) int
-		PrevSibling func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		AuthorID  func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Data      func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Kind      func(childComplexity int) int
+		ParentID  func(childComplexity int) int
+		Rank      func(childComplexity int) int
+		Tags      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	ChunkMutation struct {
-		CreateChunk  func(childComplexity int, request model.CreateRequest) int
-		DeleteChunk  func(childComplexity int, id string) int
-		RegisterUser func(childComplexity int, req model.UserRegistrationRequest) int
-		UpdateChunk  func(childComplexity int, id string, request model.UpdateRequest) int
+		CreateChunk func(childComplexity int, request model.CreateRequest) int
+		DeleteChunk func(childComplexity int, id string) int
+		UpdateChunk func(childComplexity int, id string, request model.UpdateRequest) int
 	}
 
 	ChunkQuery struct {
 		Chunk func(childComplexity int, id string) int
-		User  func(childComplexity int, id string) int
-	}
-
-	User struct {
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
 	}
 }
 
-type ChunkResolver interface {
-	Author(ctx context.Context, obj *model.Chunk) (*model.User, error)
-
-	Children(ctx context.Context, obj *model.Chunk) ([]*model.Chunk, error)
-}
 type ChunkMutationResolver interface {
-	RegisterUser(ctx context.Context, req model.UserRegistrationRequest) (*model.User, error)
 	CreateChunk(ctx context.Context, request model.CreateRequest) (*model.Chunk, error)
 	UpdateChunk(ctx context.Context, id string, request model.UpdateRequest) (*model.Chunk, error)
 	DeleteChunk(ctx context.Context, id string) (*model.Chunk, error)
 }
 type ChunkQueryResolver interface {
-	User(ctx context.Context, id string) (*model.User, error)
 	Chunk(ctx context.Context, id string) (*model.Chunk, error)
 }
 
@@ -111,40 +92,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Chunk.author":
-		if e.complexity.Chunk.Author == nil {
-			break
-		}
-
-		return e.complexity.Chunk.Author(childComplexity), true
-
 	case "Chunk.author_id":
 		if e.complexity.Chunk.AuthorID == nil {
 			break
 		}
 
 		return e.complexity.Chunk.AuthorID(childComplexity), true
-
-	case "Chunk.children":
-		if e.complexity.Chunk.Children == nil {
-			break
-		}
-
-		return e.complexity.Chunk.Children(childComplexity), true
-
-	case "Chunk.content":
-		if e.complexity.Chunk.Content == nil {
-			break
-		}
-
-		return e.complexity.Chunk.Content(childComplexity), true
-
-	case "Chunk.content_type":
-		if e.complexity.Chunk.ContentType == nil {
-			break
-		}
-
-		return e.complexity.Chunk.ContentType(childComplexity), true
 
 	case "Chunk.created_at":
 		if e.complexity.Chunk.CreatedAt == nil {
@@ -153,6 +106,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Chunk.CreatedAt(childComplexity), true
 
+	case "Chunk.data":
+		if e.complexity.Chunk.Data == nil {
+			break
+		}
+
+		return e.complexity.Chunk.Data(childComplexity), true
+
 	case "Chunk.id":
 		if e.complexity.Chunk.ID == nil {
 			break
@@ -160,28 +120,35 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Chunk.ID(childComplexity), true
 
-	case "Chunk.next_sibling":
-		if e.complexity.Chunk.NextSibling == nil {
+	case "Chunk.kind":
+		if e.complexity.Chunk.Kind == nil {
 			break
 		}
 
-		return e.complexity.Chunk.NextSibling(childComplexity), true
+		return e.complexity.Chunk.Kind(childComplexity), true
 
-	case "Chunk.parent":
-		if e.complexity.Chunk.Parent == nil {
+	case "Chunk.parent_id":
+		if e.complexity.Chunk.ParentID == nil {
 			break
 		}
 
-		return e.complexity.Chunk.Parent(childComplexity), true
+		return e.complexity.Chunk.ParentID(childComplexity), true
 
-	case "Chunk.prev_sibling":
-		if e.complexity.Chunk.PrevSibling == nil {
+	case "Chunk.rank":
+		if e.complexity.Chunk.Rank == nil {
 			break
 		}
 
-		return e.complexity.Chunk.PrevSibling(childComplexity), true
+		return e.complexity.Chunk.Rank(childComplexity), true
 
-	case "Chunk.updated_at":
+	case "Chunk.tags":
+		if e.complexity.Chunk.Tags == nil {
+			break
+		}
+
+		return e.complexity.Chunk.Tags(childComplexity), true
+
+	case "Chunk.Updated_at":
 		if e.complexity.Chunk.UpdatedAt == nil {
 			break
 		}
@@ -212,18 +179,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChunkMutation.DeleteChunk(childComplexity, args["id"].(string)), true
 
-	case "ChunkMutation.registerUser":
-		if e.complexity.ChunkMutation.RegisterUser == nil {
-			break
-		}
-
-		args, err := ec.field_ChunkMutation_registerUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ChunkMutation.RegisterUser(childComplexity, args["req"].(model.UserRegistrationRequest)), true
-
 	case "ChunkMutation.updateChunk":
 		if e.complexity.ChunkMutation.UpdateChunk == nil {
 			break
@@ -248,46 +203,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ChunkQuery.Chunk(childComplexity, args["id"].(string)), true
 
-	case "ChunkQuery.user":
-		if e.complexity.ChunkQuery.User == nil {
-			break
-		}
-
-		args, err := ec.field_ChunkQuery_user_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.ChunkQuery.User(childComplexity, args["id"].(string)), true
-
-	case "User.created_at":
-		if e.complexity.User.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.User.CreatedAt(childComplexity), true
-
-	case "User.id":
-		if e.complexity.User.ID == nil {
-			break
-		}
-
-		return e.complexity.User.ID(childComplexity), true
-
-	case "User.name":
-		if e.complexity.User.Name == nil {
-			break
-		}
-
-		return e.complexity.User.Name(childComplexity), true
-
-	case "User.updated_at":
-		if e.complexity.User.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.User.UpdatedAt(childComplexity), true
-
 	}
 	return 0, false
 }
@@ -298,7 +213,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCreateRequest,
 		ec.unmarshalInputUpdateRequest,
-		ec.unmarshalInputUserRegistrationRequest,
 	)
 	first := true
 
@@ -368,31 +282,7 @@ schema {
     mutation: ChunkMutation
 }
 
-"Chunk represents a piece of information."
-type Chunk {
-    id: String!
-    author_id: String!
-    author: User @goField(forceResolver: true)
-    created_at: Time!
-    updated_at: Time!
-
-    # relation with other chunks.
-    parent: String
-    next_sibling: String
-    prev_sibling: String
-
-    content: String!
-    content_type: ContentType!
-
-    children: [Chunk!] @goField(forceResolver: true)
-}
-
 type ChunkQuery {
-    """
-    Fetch user by id.
-    """
-    user(id: String!): User!
-
     """
     Fetch chunk by its identifier.
     """
@@ -400,9 +290,6 @@ type ChunkQuery {
 }
 
 type ChunkMutation {
-    "Register a new user. ID must be globally unique."
-    registerUser(req: UserRegistrationRequest!): User!
-
     "Creates a new chunk based on the given input."
     createChunk(request: CreateRequest!): Chunk
 
@@ -413,38 +300,48 @@ type ChunkMutation {
     deleteChunk(id: String!): Chunk
 }
 
-input UpdateRequest {
-    content: String
-    content_type: ContentType
-    parent_id: String
-    prev_sibling: String
+"Kind represents the type of data in a chunk."
+enum Kind {
+    NOTE,
+    IMAGE,
+    TODO,
 }
 
+"Chunk represents a piece of information."
+type Chunk {
+    id: String!
+    kind: String!
+    rank: String!
+    data: String!
+    tags: [String!]
+    author_id: String!
+    parent_id: String
+    created_at: Time!
+    Updated_at: Time!
+}
+
+"""
+UpdateRequest can be passed to updateChunk mutation to modify a chunk.
+"""
+input UpdateRequest {
+    kind: String
+    data: String
+    rank: String
+    parent: String
+}
+
+"""
+CreateRequest can be passed to createChunk mutation to create a new chunk.
+"""
 input CreateRequest {
     id: String!
-    content: String!
+    kind: Kind!
+    data: String!
+    rank: String!
     author_id: String!
-    content_type: ContentType
     parent_id: String
-    prev_sibling: String
 }
-
-enum ContentType {
-    TEXT,
-    LINK,
-}
-
-type User {
-    id: String!
-    name: String!
-    created_at: Time!
-    updated_at: Time!
-}
-
-input UserRegistrationRequest {
-    id: String!
-    name: String!
-}`, BuiltIn: false},
+`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -479,21 +376,6 @@ func (ec *executionContext) field_ChunkMutation_deleteChunk_args(ctx context.Con
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_ChunkMutation_registerUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.UserRegistrationRequest
-	if tmp, ok := rawArgs["req"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("req"))
-		arg0, err = ec.unmarshalNUserRegistrationRequest2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUserRegistrationRequest(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["req"] = arg0
 	return args, nil
 }
 
@@ -537,21 +419,6 @@ func (ec *executionContext) field_ChunkQuery___type_args(ctx context.Context, ra
 }
 
 func (ec *executionContext) field_ChunkQuery_chunk_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_ChunkQuery_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -648,6 +515,179 @@ func (ec *executionContext) fieldContext_Chunk_id(ctx context.Context, field gra
 	return fc, nil
 }
 
+func (ec *executionContext) _Chunk_kind(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_kind(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Kind, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Chunk_kind(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Chunk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Chunk_rank(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_rank(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Rank, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Chunk_rank(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Chunk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Chunk_data(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Chunk_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Chunk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Chunk_tags(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_tags(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tags, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Chunk_tags(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Chunk",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Chunk_author_id(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Chunk_author_id(ctx, field)
 	if err != nil {
@@ -692,8 +732,8 @@ func (ec *executionContext) fieldContext_Chunk_author_id(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _Chunk_author(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_author(ctx, field)
+func (ec *executionContext) _Chunk_parent_id(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_parent_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -706,7 +746,7 @@ func (ec *executionContext) _Chunk_author(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Chunk().Author(rctx, obj)
+		return obj.ParentID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -715,29 +755,19 @@ func (ec *executionContext) _Chunk_author(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.User)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Chunk_author(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Chunk_parent_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Chunk",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "created_at":
-				return ec.fieldContext_User_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_User_updated_at(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -787,8 +817,8 @@ func (ec *executionContext) fieldContext_Chunk_created_at(ctx context.Context, f
 	return fc, nil
 }
 
-func (ec *executionContext) _Chunk_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_updated_at(ctx, field)
+func (ec *executionContext) _Chunk_Updated_at(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Chunk_Updated_at(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -818,7 +848,7 @@ func (ec *executionContext) _Chunk_updated_at(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Chunk_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Chunk_Updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Chunk",
 		Field:      field,
@@ -827,347 +857,6 @@ func (ec *executionContext) fieldContext_Chunk_updated_at(ctx context.Context, f
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
 		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_parent(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_parent(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Parent, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_parent(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_next_sibling(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_next_sibling(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NextSibling, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_next_sibling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_prev_sibling(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_prev_sibling(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PrevSibling, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_prev_sibling(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_content(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_content(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Content, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_content(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_content_type(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_content_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ContentType, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.ContentType)
-	fc.Result = res
-	return ec.marshalNContentType2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_content_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ContentType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Chunk_children(ctx context.Context, field graphql.CollectedField, obj *model.Chunk) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Chunk_children(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Chunk().Children(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model.Chunk)
-	fc.Result = res
-	return ec.marshalOChunk2ᚕᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐChunkᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Chunk_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Chunk",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Chunk_id(ctx, field)
-			case "author_id":
-				return ec.fieldContext_Chunk_author_id(ctx, field)
-			case "author":
-				return ec.fieldContext_Chunk_author(ctx, field)
-			case "created_at":
-				return ec.fieldContext_Chunk_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Chunk_updated_at(ctx, field)
-			case "parent":
-				return ec.fieldContext_Chunk_parent(ctx, field)
-			case "next_sibling":
-				return ec.fieldContext_Chunk_next_sibling(ctx, field)
-			case "prev_sibling":
-				return ec.fieldContext_Chunk_prev_sibling(ctx, field)
-			case "content":
-				return ec.fieldContext_Chunk_content(ctx, field)
-			case "content_type":
-				return ec.fieldContext_Chunk_content_type(ctx, field)
-			case "children":
-				return ec.fieldContext_Chunk_children(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Chunk", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChunkMutation_registerUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ChunkMutation_registerUser(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ChunkMutation().RegisterUser(rctx, fc.Args["req"].(model.UserRegistrationRequest))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ChunkMutation_registerUser(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChunkMutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "created_at":
-				return ec.fieldContext_User_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_User_updated_at(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ChunkMutation_registerUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }
@@ -1210,26 +899,22 @@ func (ec *executionContext) fieldContext_ChunkMutation_createChunk(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Chunk_id(ctx, field)
+			case "kind":
+				return ec.fieldContext_Chunk_kind(ctx, field)
+			case "rank":
+				return ec.fieldContext_Chunk_rank(ctx, field)
+			case "data":
+				return ec.fieldContext_Chunk_data(ctx, field)
+			case "tags":
+				return ec.fieldContext_Chunk_tags(ctx, field)
 			case "author_id":
 				return ec.fieldContext_Chunk_author_id(ctx, field)
-			case "author":
-				return ec.fieldContext_Chunk_author(ctx, field)
+			case "parent_id":
+				return ec.fieldContext_Chunk_parent_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Chunk_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Chunk_updated_at(ctx, field)
-			case "parent":
-				return ec.fieldContext_Chunk_parent(ctx, field)
-			case "next_sibling":
-				return ec.fieldContext_Chunk_next_sibling(ctx, field)
-			case "prev_sibling":
-				return ec.fieldContext_Chunk_prev_sibling(ctx, field)
-			case "content":
-				return ec.fieldContext_Chunk_content(ctx, field)
-			case "content_type":
-				return ec.fieldContext_Chunk_content_type(ctx, field)
-			case "children":
-				return ec.fieldContext_Chunk_children(ctx, field)
+			case "Updated_at":
+				return ec.fieldContext_Chunk_Updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Chunk", field.Name)
 		},
@@ -1286,26 +971,22 @@ func (ec *executionContext) fieldContext_ChunkMutation_updateChunk(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Chunk_id(ctx, field)
+			case "kind":
+				return ec.fieldContext_Chunk_kind(ctx, field)
+			case "rank":
+				return ec.fieldContext_Chunk_rank(ctx, field)
+			case "data":
+				return ec.fieldContext_Chunk_data(ctx, field)
+			case "tags":
+				return ec.fieldContext_Chunk_tags(ctx, field)
 			case "author_id":
 				return ec.fieldContext_Chunk_author_id(ctx, field)
-			case "author":
-				return ec.fieldContext_Chunk_author(ctx, field)
+			case "parent_id":
+				return ec.fieldContext_Chunk_parent_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Chunk_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Chunk_updated_at(ctx, field)
-			case "parent":
-				return ec.fieldContext_Chunk_parent(ctx, field)
-			case "next_sibling":
-				return ec.fieldContext_Chunk_next_sibling(ctx, field)
-			case "prev_sibling":
-				return ec.fieldContext_Chunk_prev_sibling(ctx, field)
-			case "content":
-				return ec.fieldContext_Chunk_content(ctx, field)
-			case "content_type":
-				return ec.fieldContext_Chunk_content_type(ctx, field)
-			case "children":
-				return ec.fieldContext_Chunk_children(ctx, field)
+			case "Updated_at":
+				return ec.fieldContext_Chunk_Updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Chunk", field.Name)
 		},
@@ -1362,26 +1043,22 @@ func (ec *executionContext) fieldContext_ChunkMutation_deleteChunk(ctx context.C
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Chunk_id(ctx, field)
+			case "kind":
+				return ec.fieldContext_Chunk_kind(ctx, field)
+			case "rank":
+				return ec.fieldContext_Chunk_rank(ctx, field)
+			case "data":
+				return ec.fieldContext_Chunk_data(ctx, field)
+			case "tags":
+				return ec.fieldContext_Chunk_tags(ctx, field)
 			case "author_id":
 				return ec.fieldContext_Chunk_author_id(ctx, field)
-			case "author":
-				return ec.fieldContext_Chunk_author(ctx, field)
+			case "parent_id":
+				return ec.fieldContext_Chunk_parent_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Chunk_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Chunk_updated_at(ctx, field)
-			case "parent":
-				return ec.fieldContext_Chunk_parent(ctx, field)
-			case "next_sibling":
-				return ec.fieldContext_Chunk_next_sibling(ctx, field)
-			case "prev_sibling":
-				return ec.fieldContext_Chunk_prev_sibling(ctx, field)
-			case "content":
-				return ec.fieldContext_Chunk_content(ctx, field)
-			case "content_type":
-				return ec.fieldContext_Chunk_content_type(ctx, field)
-			case "children":
-				return ec.fieldContext_Chunk_children(ctx, field)
+			case "Updated_at":
+				return ec.fieldContext_Chunk_Updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Chunk", field.Name)
 		},
@@ -1394,71 +1071,6 @@ func (ec *executionContext) fieldContext_ChunkMutation_deleteChunk(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_ChunkMutation_deleteChunk_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ChunkQuery_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ChunkQuery_user(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ChunkQuery().User(rctx, fc.Args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalNUser2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ChunkQuery_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChunkQuery",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "created_at":
-				return ec.fieldContext_User_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_User_updated_at(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_ChunkQuery_user_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -1506,26 +1118,22 @@ func (ec *executionContext) fieldContext_ChunkQuery_chunk(ctx context.Context, f
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Chunk_id(ctx, field)
+			case "kind":
+				return ec.fieldContext_Chunk_kind(ctx, field)
+			case "rank":
+				return ec.fieldContext_Chunk_rank(ctx, field)
+			case "data":
+				return ec.fieldContext_Chunk_data(ctx, field)
+			case "tags":
+				return ec.fieldContext_Chunk_tags(ctx, field)
 			case "author_id":
 				return ec.fieldContext_Chunk_author_id(ctx, field)
-			case "author":
-				return ec.fieldContext_Chunk_author(ctx, field)
+			case "parent_id":
+				return ec.fieldContext_Chunk_parent_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Chunk_created_at(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_Chunk_updated_at(ctx, field)
-			case "parent":
-				return ec.fieldContext_Chunk_parent(ctx, field)
-			case "next_sibling":
-				return ec.fieldContext_Chunk_next_sibling(ctx, field)
-			case "prev_sibling":
-				return ec.fieldContext_Chunk_prev_sibling(ctx, field)
-			case "content":
-				return ec.fieldContext_Chunk_content(ctx, field)
-			case "content_type":
-				return ec.fieldContext_Chunk_content_type(ctx, field)
-			case "children":
-				return ec.fieldContext_Chunk_children(ctx, field)
+			case "Updated_at":
+				return ec.fieldContext_Chunk_Updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Chunk", field.Name)
 		},
@@ -1668,182 +1276,6 @@ func (ec *executionContext) fieldContext_ChunkQuery___schema(ctx context.Context
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_name(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_created_at(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_created_at(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_updated_at(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	fc.Result = res
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
 		},
 	}
 	return fc, nil
@@ -3639,11 +3071,27 @@ func (ec *executionContext) unmarshalInputCreateRequest(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "content":
+		case "kind":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
-			it.Content, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
+			it.Kind, err = ec.unmarshalNKind2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐKind(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "data":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+			it.Data, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "rank":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rank"))
+			it.Rank, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3655,27 +3103,11 @@ func (ec *executionContext) unmarshalInputCreateRequest(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
-		case "content_type":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content_type"))
-			it.ContentType, err = ec.unmarshalOContentType2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "parent_id":
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent_id"))
 			it.ParentID, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "prev_sibling":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("prev_sibling"))
-			it.PrevSibling, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3694,66 +3126,35 @@ func (ec *executionContext) unmarshalInputUpdateRequest(ctx context.Context, obj
 
 	for k, v := range asMap {
 		switch k {
-		case "content":
+		case "kind":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content"))
-			it.Content, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("kind"))
+			it.Kind, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "content_type":
+		case "data":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content_type"))
-			it.ContentType, err = ec.unmarshalOContentType2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("data"))
+			it.Data, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "parent_id":
+		case "rank":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent_id"))
-			it.ParentID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rank"))
+			it.Rank, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "prev_sibling":
+		case "parent":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("prev_sibling"))
-			it.PrevSibling, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputUserRegistrationRequest(ctx context.Context, obj interface{}) (model.UserRegistrationRequest, error) {
-	var it model.UserRegistrationRequest
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parent"))
+			it.Parent, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3786,89 +3187,58 @@ func (ec *executionContext) _Chunk(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Chunk_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
+		case "kind":
+
+			out.Values[i] = ec._Chunk_kind(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "rank":
+
+			out.Values[i] = ec._Chunk_rank(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "data":
+
+			out.Values[i] = ec._Chunk_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "tags":
+
+			out.Values[i] = ec._Chunk_tags(ctx, field, obj)
+
 		case "author_id":
 
 			out.Values[i] = ec._Chunk_author_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
-		case "author":
-			field := field
+		case "parent_id":
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Chunk_author(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._Chunk_parent_id(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "created_at":
 
 			out.Values[i] = ec._Chunk_created_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
-		case "updated_at":
+		case "Updated_at":
 
-			out.Values[i] = ec._Chunk_updated_at(ctx, field, obj)
+			out.Values[i] = ec._Chunk_Updated_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
-		case "parent":
-
-			out.Values[i] = ec._Chunk_parent(ctx, field, obj)
-
-		case "next_sibling":
-
-			out.Values[i] = ec._Chunk_next_sibling(ctx, field, obj)
-
-		case "prev_sibling":
-
-			out.Values[i] = ec._Chunk_prev_sibling(ctx, field, obj)
-
-		case "content":
-
-			out.Values[i] = ec._Chunk_content(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "content_type":
-
-			out.Values[i] = ec._Chunk_content_type(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "children":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Chunk_children(ctx, field, obj)
-				return res
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3899,15 +3269,6 @@ func (ec *executionContext) _ChunkMutation(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ChunkMutation")
-		case "registerUser":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ChunkMutation_registerUser(ctx, field)
-			})
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createChunk":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -3956,29 +3317,6 @@ func (ec *executionContext) _ChunkQuery(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ChunkQuery")
-		case "user":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ChunkQuery_user(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "chunk":
 			field := field
 
@@ -4014,55 +3352,6 @@ func (ec *executionContext) _ChunkQuery(ctx context.Context, sel ast.SelectionSe
 				return ec._ChunkQuery___schema(ctx, field)
 			})
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var userImplementors = []string{"User"}
-
-func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model.User) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("User")
-		case "id":
-
-			out.Values[i] = ec._User_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-
-			out.Values[i] = ec._User_name(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "created_at":
-
-			out.Values[i] = ec._User_created_at(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updated_at":
-
-			out.Values[i] = ec._User_updated_at(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4421,19 +3710,19 @@ func (ec *executionContext) marshalNChunk2ᚖgithubᚗcomᚋchunkedᚑappᚋcort
 	return ec._Chunk(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNContentType2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx context.Context, v interface{}) (model.ContentType, error) {
-	var res model.ContentType
+func (ec *executionContext) unmarshalNCreateRequest2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐCreateRequest(ctx context.Context, v interface{}) (model.CreateRequest, error) {
+	res, err := ec.unmarshalInputCreateRequest(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNKind2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐKind(ctx context.Context, v interface{}) (model.Kind, error) {
+	var res model.Kind
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNContentType2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx context.Context, sel ast.SelectionSet, v model.ContentType) graphql.Marshaler {
+func (ec *executionContext) marshalNKind2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐKind(ctx context.Context, sel ast.SelectionSet, v model.Kind) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) unmarshalNCreateRequest2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐCreateRequest(ctx context.Context, v interface{}) (model.CreateRequest, error) {
-	res, err := ec.unmarshalInputCreateRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -4468,25 +3757,6 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalNUpdateRequest2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUpdateRequest(ctx context.Context, v interface{}) (model.UpdateRequest, error) {
 	res, err := ec.unmarshalInputUpdateRequest(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUser2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
-	return ec._User(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNUserRegistrationRequest2githubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUserRegistrationRequest(ctx context.Context, v interface{}) (model.UserRegistrationRequest, error) {
-	res, err := ec.unmarshalInputUserRegistrationRequest(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -4769,43 +4039,41 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOChunk2ᚕᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐChunkᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Chunk) graphql.Marshaler {
+func (ec *executionContext) marshalOChunk2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐChunk(ctx context.Context, sel ast.SelectionSet, v *model.Chunk) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Chunk(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
 	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNChunk2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐChunk(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
+		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
 	}
-	wg.Wait()
 
 	for _, e := range ret {
 		if e == graphql.Null {
@@ -4814,29 +4082,6 @@ func (ec *executionContext) marshalOChunk2ᚕᚖgithubᚗcomᚋchunkedᚑappᚋc
 	}
 
 	return ret
-}
-
-func (ec *executionContext) marshalOChunk2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐChunk(ctx context.Context, sel ast.SelectionSet, v *model.Chunk) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Chunk(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOContentType2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx context.Context, v interface{}) (*model.ContentType, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var res = new(model.ContentType)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOContentType2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐContentType(ctx context.Context, sel ast.SelectionSet, v *model.ContentType) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return v
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
@@ -4853,13 +4098,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
-}
-
-func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋchunkedᚑappᚋcortexᚋgqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

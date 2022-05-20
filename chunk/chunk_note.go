@@ -5,8 +5,8 @@ type NoteData struct {
 	Format string `json:"format"`
 }
 
-func (n NoteData) Type() string { return TypeNote }
+func (data NoteData) Kind() string { return KindNote }
 
-func (n *NoteData) Validate() error {
+func (data *NoteData) Validate() error {
 	return nil
 }

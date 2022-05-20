@@ -11,10 +11,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
-	"github.com/chunked-app/cortex/block"
 	"github.com/chunked-app/cortex/gql"
-	"github.com/chunked-app/cortex/store"
-	"github.com/chunked-app/cortex/user"
 )
 
 var (
@@ -60,15 +57,7 @@ func cmdServe(ctx context.Context) *cobra.Command {
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		cfg := loadConfig(cmd)
 
-		chunkStore, userStore, err := store.Open(cfg.Database)
-		if err != nil {
-			log.Fatalf("failed to setup databse: %v", err)
-		}
-
 		srv := gql.Server{
-			Authn:     nil,
-			UsersAPI:  &user.API{Store: userStore},
-			ChunksAPI: &block.API{Store: chunkStore},
 			SystemInfo: map[string]interface{}{
 				"version":    Version,
 				"commit_sha": Commit,
