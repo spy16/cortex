@@ -95,7 +95,7 @@ type ListOptions struct {
 }
 
 func (opts ListOptions) IsMatch(ch Chunk) bool {
-	parentMatch := opts.Parent == "" || ch.Parent == opts.Parent
+	parentMatch := ch.Parent == opts.Parent
 	authorMatch := opts.Author == "" || ch.Author == opts.Author
 	return parentMatch && authorMatch
 }

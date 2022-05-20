@@ -11,6 +11,23 @@ import (
 	"github.com/chunked-app/cortex/user"
 )
 
+func (r *chunkResolver) Children(ctx context.Context, obj *model.Chunk) ([]*model.Chunk, error) {
+	chunks, err := r.ChunksAPI.List(ctx, chunk.ListOptions{Parent: obj.ID})
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*model.Chunk
+	for _, ch := range chunks {
+		m, err := model.ChunkFrom(ch)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, m)
+	}
+	return res, nil
+}
+
 func (r *chunkMutationResolver) RegisterUser(ctx context.Context, req model.RegisterUserRequest) (*model.User, error) {
 	u := user.User{
 		ID:   req.ID,
@@ -108,6 +125,9 @@ func (r *userResolver) Chunks(ctx context.Context, obj *model.User) ([]*model.Ch
 	return res, nil
 }
 
+// Chunk returns ChunkResolver implementation.
+func (r *Resolver) Chunk() ChunkResolver { return &chunkResolver{r} }
+
 // ChunkMutation returns ChunkMutationResolver implementation.
 func (r *Resolver) ChunkMutation() ChunkMutationResolver { return &chunkMutationResolver{r} }
 
@@ -117,6 +137,7 @@ func (r *Resolver) ChunkQuery() ChunkQueryResolver { return &chunkQueryResolver{
 // User returns UserResolver implementation.
 func (r *Resolver) User() UserResolver { return &userResolver{r} }
 
+type chunkResolver struct{ *Resolver }
 type chunkMutationResolver struct{ *Resolver }
 type chunkQueryResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

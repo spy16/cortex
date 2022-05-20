@@ -8,9 +8,9 @@ import (
 )
 
 type ImageData struct {
-	Alt     string `json:"alt"`
 	URL     string `json:"url"`
-	Caption string `json:"caption"`
+	Alt     string `json:"alt,omitempty"`
+	Caption string `json:"caption,omitempty"`
 }
 
 func (data ImageData) Kind() string { return KindImage }

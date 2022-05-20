@@ -43,9 +43,10 @@ enum Kind {
 type Chunk {
     id: String!
     kind: String!
-    rank: String!
     data: String!
+    rank: String!
     tags: [String!]
+    children: [Chunk!] @goField(forceResolver: true)
     author_id: String!
     parent_id: String
     created_at: Time!

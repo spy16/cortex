@@ -13,9 +13,10 @@ import (
 type Chunk struct {
 	ID        string    `json:"id"`
 	Kind      string    `json:"kind"`
-	Rank      string    `json:"rank"`
 	Data      string    `json:"data"`
+	Rank      string    `json:"rank"`
 	Tags      []string  `json:"tags"`
+	Children  []*Chunk  `json:"children"`
 	AuthorID  string    `json:"author_id"`
 	ParentID  *string   `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`

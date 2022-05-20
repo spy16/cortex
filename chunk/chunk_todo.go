@@ -2,14 +2,13 @@ package chunk
 
 import (
 	"strings"
-	"time"
 
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
 type TodoData struct {
-	Deadline time.Time  `json:"deadline"`
 	Items    []TodoItem `json:"items"`
+	Deadline int64      `json:"deadline,omitempty"`
 }
 
 type TodoItem struct {
