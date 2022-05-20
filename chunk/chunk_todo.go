@@ -1,6 +1,11 @@
 package chunk
 
-import "time"
+import (
+	"strings"
+	"time"
+
+	"github.com/chunked-app/cortex/pkg/errors"
+)
 
 type TodoData struct {
 	Deadline time.Time  `json:"deadline"`
@@ -15,5 +20,18 @@ type TodoItem struct {
 func (data TodoData) Kind() string { return KindTodo }
 
 func (data *TodoData) Validate() error {
+	items := data.Items
+	data.Items = nil
+	for _, item := range items {
+		item.Text = strings.TrimSpace(item.Text)
+		if item.Text != "" {
+			data.Items = append(data.Items, item)
+		}
+	}
+
+	if len(data.Items) == 0 {
+		return errors.ErrInvalid.WithMsgf("todo list must have at-least 1 item")
+	}
+
 	return nil
 }

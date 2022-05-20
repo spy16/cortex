@@ -97,7 +97,7 @@ func (mem *Store) Update(ctx context.Context, id string, upd chunk.Updates) (*ch
 	}
 	c.Apply(upd)
 
-	mem.chunks[c.ID] = c
+	mem.chunks[id] = c
 	return &c, nil
 }
 
