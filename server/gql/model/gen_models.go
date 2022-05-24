@@ -53,12 +53,14 @@ type User struct {
 type Kind string
 
 const (
+	KindUser  Kind = "USER"
 	KindNote  Kind = "NOTE"
 	KindTodo  Kind = "TODO"
 	KindImage Kind = "IMAGE"
 )
 
 var AllKind = []Kind{
+	KindUser,
 	KindNote,
 	KindTodo,
 	KindImage,
@@ -66,7 +68,7 @@ var AllKind = []Kind{
 
 func (e Kind) IsValid() bool {
 	switch e {
-	case KindNote, KindTodo, KindImage:
+	case KindUser, KindNote, KindTodo, KindImage:
 		return true
 	}
 	return false

@@ -12,6 +12,7 @@ import (
 
 // Supported types of chunks.
 const (
+	KindUser  = "USER"
 	KindNote  = "NOTE"
 	KindTodo  = "TODO"
 	KindImage = "IMAGE"
@@ -53,6 +54,9 @@ func ParseData(kind, data string) (Data, error) {
 
 	var into Data
 	switch kind {
+	case KindUser:
+		into = &UserData{}
+
 	case KindNote:
 		into = &NoteData{}
 
@@ -109,9 +113,12 @@ func (c *Chunk) Apply(upd Updates) {
 
 func (c *Chunk) genID() error {
 	kind := c.Data.Kind()
+	if kind == KindUser {
+		return nil
+	}
+
 	idPrefix := strings.ToLower(string(kind[0]))
 	idSuffix := randString(genIDLen, genIDChars)
-
 	c.ID = fmt.Sprintf("%s-%s", idPrefix, idSuffix)
 	return nil
 }
