@@ -1,17 +1,14 @@
 package chunk
 
 import (
-	"context"
 	"encoding/json"
+	"fmt"
 	"math/rand"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/chunked-app/cortex/pkg/errors"
 )
-
-const maxIDLen = 12
 
 // Supported types of chunks.
 const (
@@ -20,28 +17,18 @@ const (
 	KindImage = "IMAGE"
 )
 
-const idCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-var idPattern = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
-
-// Store implementation is responsible for persisting chunks.
-type Store interface {
-	Get(ctx context.Context, id string) (*Chunk, error)
-	List(ctx context.Context, opts ListOptions) ([]Chunk, error)
-	Create(ctx context.Context, c Chunk) error
-	Update(ctx context.Context, id string, upd Updates) (*Chunk, error)
-	Delete(ctx context.Context, id string) (*Chunk, error)
-}
+const (
+	genIDLen   = 6
+	genIDChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)
 
 // Chunk represents a piece of information written down by a user.
 type Chunk struct {
 	ID        string    `json:"id"`
-	Kind      string    `json:"kind"`
 	Data      Data      `json:"data"`
 	Tags      []string  `json:"tags"`
-	Rank      string    `json:"rank"`
 	Author    string    `json:"author"`
-	Parent    string    `json:"parent,omitempty"`
+	Parent    string    `json:"parent"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -55,9 +42,7 @@ type Data interface {
 // Updates represents modifications to a chunk. Zero-values are treated
 // as no-update.
 type Updates struct {
-	Data   Data     `json:"data"`
 	Tags   []string `json:"tags"`
-	Rank   string   `json:"rank"`
 	Parent string   `json:"parent"`
 }
 
@@ -103,36 +88,16 @@ func (c *Chunk) Validate() error {
 	} else if err := c.Data.Validate(); err != nil {
 		return err
 	}
-	c.Kind = c.Data.Kind()
-
-	c.ID = strings.TrimSpace(c.ID)
-	if err := validateID(c.ID, false); err != nil {
-		return err
-	}
-
-	c.Parent = strings.TrimSpace(c.Parent)
-	if err := validateID(c.Parent, true); err != nil {
-		return err
-	}
 
 	c.Author = strings.TrimSpace(c.Author)
 	if c.Author == "" {
 		return errors.ErrInvalid.WithMsgf("author must be set")
 	}
 
-	return nil
+	return c.genID()
 }
 
 func (c *Chunk) Apply(upd Updates) {
-	if upd.Data != nil {
-		c.Kind = upd.Data.Kind()
-		c.Data = upd.Data
-	}
-
-	if upd.Rank != "" {
-		c.Rank = upd.Rank
-	}
-
 	if upd.Parent != "" {
 		c.Parent = upd.Parent
 	}
@@ -142,27 +107,13 @@ func (c *Chunk) Apply(upd Updates) {
 	}
 }
 
-func (c *Chunk) genID() { c.ID = randString(5, idCharset) }
+func (c *Chunk) genID() error {
+	kind := c.Data.Kind()
+	idPrefix := strings.ToLower(string(kind[0]))
+	idSuffix := randString(genIDLen, genIDChars)
 
-func validateID(id string, optional bool) error {
-	if optional && id == "" {
-		return nil
-	}
-
-	if len(id) == 0 || len(id) > maxIDLen {
-		return errors.ErrInvalid.WithMsgf("id must have 1-%d characters", maxIDLen)
-	} else if !idPattern.MatchString(id) {
-		return errors.ErrInvalid.WithMsgf("id must match pattern '%s'", idPattern)
-	}
+	c.ID = fmt.Sprintf("%s-%s", idPrefix, idSuffix)
 	return nil
-}
-
-func randString(n int, charset string) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
 }
 
 func cleanTags(tags []string) []string {
@@ -181,4 +132,12 @@ func cleanTags(tags []string) []string {
 		}
 	}
 	return res
+}
+
+func randString(n int, charset string) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }

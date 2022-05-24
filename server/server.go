@@ -1,4 +1,4 @@
-package gql
+package server
 
 import (
 	"context"
@@ -13,16 +13,14 @@ import (
 	"github.com/rs/cors"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
-	"github.com/chunked-app/cortex/chunk"
-	"github.com/chunked-app/cortex/gql/graph"
+	"github.com/chunked-app/cortex/core"
 	"github.com/chunked-app/cortex/pkg/errors"
-	"github.com/chunked-app/cortex/user"
+	"github.com/chunked-app/cortex/server/gql"
 )
 
 type Server struct {
 	SystemInfo map[string]interface{}
-	UsersAPI   *user.API
-	ChunksAPI  *chunk.API
+	CoreAPI    *core.API
 }
 
 func (srv *Server) Serve(ctx context.Context, addr string) error {
@@ -35,39 +33,12 @@ func (srv *Server) Serve(ctx context.Context, addr string) error {
 		}).Handler,
 	)
 
-	router.Get("/ping", pingHandler(srv.SystemInfo))
 	router.NotFound(notFoundHandler())
 	router.MethodNotAllowed(methodNotAllowedHandler())
 
-	// setup GraphQL schema and handlers.
-	schema := graph.NewExecutableSchema(graph.Config{
-		Resolvers: &graph.Resolver{
-			UsersAPI:  srv.UsersAPI,
-			ChunksAPI: srv.ChunksAPI,
-		},
-	})
-	gqlServer := handler.NewDefaultServer(schema)
-	gqlServer.AddTransport(transport.POST{})
-	gqlServer.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
-		ge := graphql.DefaultErrorPresenter(ctx, err)
-		if ge.Unwrap() != nil {
-			err = ge.Unwrap()
-		} else {
-			err = ge
-		}
-
-		e := errors.E(err)
-		ext := map[string]interface{}{"code": e.Code}
-		if e.Cause != "" {
-			ext["cause"] = e.Cause
-		}
-		return &gqlerror.Error{
-			Message:    e.Message,
-			Extensions: ext,
-		}
-	})
+	router.Get("/ping", pingHandler(srv.SystemInfo))
 	router.Handle("/gql/play", playground.Handler("GraphQL playground", "/gql/query"))
-	router.Handle("/gql/query", gqlServer)
+	router.Handle("/gql/query", authenticate()(setupGQL(srv.CoreAPI)))
 
 	return gracefulServe(ctx, 5*time.Second, addr, router)
 }
@@ -92,4 +63,36 @@ func pingHandler(info map[string]interface{}) http.HandlerFunc {
 	return func(wr http.ResponseWriter, req *http.Request) {
 		respondJSON(wr, http.StatusOK, info)
 	}
+}
+
+func setupGQL(api *core.API) http.Handler {
+	// setup GraphQL schema and handlers.
+	schema := gql.NewExecutableSchema(gql.Config{
+		Resolvers: &gql.Resolver{
+			UsersAPI:  api,
+			ChunksAPI: api,
+		},
+	})
+	gqlServer := handler.NewDefaultServer(schema)
+	gqlServer.AddTransport(&transport.POST{})
+	gqlServer.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		ge := graphql.DefaultErrorPresenter(ctx, err)
+		if ge.Unwrap() != nil {
+			err = ge.Unwrap()
+		} else {
+			err = ge
+		}
+
+		e := errors.E(err)
+		ext := map[string]interface{}{"code": e.Code}
+		if e.Cause != "" {
+			ext["cause"] = e.Cause
+		}
+		return &gqlerror.Error{
+			Message:    e.Message,
+			Extensions: ext,
+		}
+	})
+
+	return gqlServer
 }

@@ -14,7 +14,6 @@ type Chunk struct {
 	ID        string    `json:"id"`
 	Kind      string    `json:"kind"`
 	Data      string    `json:"data"`
-	Rank      string    `json:"rank"`
 	Tags      []string  `json:"tags"`
 	Children  []*Chunk  `json:"children"`
 	AuthorID  string    `json:"author_id"`
@@ -23,35 +22,29 @@ type Chunk struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// CreateRequest can be passed to createChunk mutation to create a new chunk.
 type CreateRequest struct {
 	Kind     Kind     `json:"kind"`
 	Data     string   `json:"data"`
-	Rank     *string  `json:"rank"`
 	Tags     []string `json:"tags"`
-	AuthorID string   `json:"author_id"`
 	ParentID *string  `json:"parent_id"`
 }
 
 type RegisterUserRequest struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
-// UpdateRequest can be passed to updateChunk mutation to modify a chunk.
 type UpdateRequest struct {
-	Kind   *string  `json:"kind"`
-	Data   *string  `json:"data"`
-	Rank   *string  `json:"rank"`
 	Tags   []string `json:"tags"`
 	Parent *string  `json:"parent"`
 }
 
-// User represents a user of the system who can create & manage chunks.
+// User represents an entity that interacts with the system.
 type User struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
-	Chunks    []*Chunk  `json:"chunks"`
+	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -61,19 +54,19 @@ type Kind string
 
 const (
 	KindNote  Kind = "NOTE"
-	KindImage Kind = "IMAGE"
 	KindTodo  Kind = "TODO"
+	KindImage Kind = "IMAGE"
 )
 
 var AllKind = []Kind{
 	KindNote,
-	KindImage,
 	KindTodo,
+	KindImage,
 }
 
 func (e Kind) IsValid() bool {
 	switch e {
-	case KindNote, KindImage, KindTodo:
+	case KindNote, KindTodo, KindImage:
 		return true
 	}
 	return false

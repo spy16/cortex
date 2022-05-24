@@ -3,24 +3,21 @@ scalar Time
 directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
 schema {
-    query: ChunkQuery
-    mutation: ChunkMutation
+    query: Query
+    mutation: Mutation
 }
 
-type ChunkQuery {
-    """
-    Fetch chunk by its identifier.
-    """
+type Query {
+    "Fetch chunk by its identifier."
     chunk(id: String!): Chunk!
 
-    """
-    Fetch user by identifier.
-    """
+    "Fetch user by identifier."
     user(id: String!): User!
 }
 
-type ChunkMutation {
-    registerUser(req: RegisterUserRequest!): User!
+type Mutation {
+    "Register a new user."
+    registerUser(req: RegisterUserRequest): User!
 
     "Creates a new chunk based on the given input."
     createChunk(req: CreateRequest!): Chunk!
@@ -35,8 +32,17 @@ type ChunkMutation {
 "Kind represents the type of data in a chunk."
 enum Kind {
     NOTE,
-    IMAGE,
     TODO,
+    IMAGE,
+}
+
+"User represents an entity that interacts with the system."
+type User {
+    id: String!
+    name: String!
+    email: String!
+    created_at: Time!
+    updated_at: Time!
 }
 
 "Chunk represents a piece of information."
@@ -44,50 +50,28 @@ type Chunk {
     id: String!
     kind: String!
     data: String!
-    rank: String!
     tags: [String!]
-    children: [Chunk!] @goField(forceResolver: true)
+    children: [Chunk!]! @goField(forceResolver: true)
     author_id: String!
     parent_id: String
     created_at: Time!
     updated_at: Time!
 }
 
-"""
-User represents a user of the system who can create & manage chunks.
-"""
-type User {
-    id: String!
-    name: String!
-    chunks: [Chunk!] @goField(forceResolver: true)
-    created_at: Time!
-    updated_at: Time!
-}
-
-"""
-UpdateRequest can be passed to updateChunk mutation to modify a chunk.
-"""
 input UpdateRequest {
-    kind: String
-    data: String
-    rank: String
     tags: [String!]
     parent: String
 }
 
-"""
-CreateRequest can be passed to createChunk mutation to create a new chunk.
-"""
 input CreateRequest {
     kind: Kind!
     data: String!
-    rank: String
     tags: [String!]
-    author_id: String!
     parent_id: String
 }
 
 input RegisterUserRequest {
     id: String!
     name: String!
+    email: String!
 }

@@ -2,15 +2,26 @@ package user
 
 import (
 	"context"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
+const maxIDLen = 32
+
+var userIDPattern = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+
+type Store interface {
+	FetchUser(ctx context.Context, id string) (*User, error)
+	CreateUser(ctx context.Context, u User) error
+}
+
 type User struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
+	Email     string    `json:"email,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -24,28 +35,20 @@ func (u *User) Validate() error {
 		u.UpdatedAt = u.CreatedAt
 	}
 
-	if u.ID == "" {
-		return errors.ErrInvalid.WithMsgf("user id must not be empty")
-	}
-
 	if u.Name == "" {
 		return errors.ErrInvalid.WithMsgf("user name must not be empty")
 	}
 
-	return nil
+	return validateUserID(u.ID)
 }
 
 func (u *User) IsEmpty() bool { return u.ID == "" }
 
-func With(ctx context.Context, u User) context.Context {
-	return context.WithValue(ctx, userKey, u)
+func validateUserID(id string) error {
+	if len(id) == 0 || len(id) > maxIDLen {
+		return errors.ErrInvalid.WithMsgf("login_id must have 1-%d characters", maxIDLen)
+	} else if !userIDPattern.MatchString(id) {
+		return errors.ErrInvalid.WithMsgf("login_id must match pattern '%s'", userIDPattern)
+	}
+	return nil
 }
-
-func From(ctx context.Context) User {
-	u, _ := ctx.Value(userKey).(User)
-	return u
-}
-
-type key string
-
-var userKey = key("user")

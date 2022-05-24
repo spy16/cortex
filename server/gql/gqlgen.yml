@@ -3,19 +3,19 @@ schema:
   - '*.graphqls'
 
 exec:
-  filename: graph/gen_exec.go
-  package: graph
+  filename: gen_exec.go
+  package: gql
 
 model:
-  filename: graph/model/gen_models.go
+  filename: model/gen_models.go
   package: model
 
 # Where should the resolver implementations go?
 resolver:
   layout: follow-schema
-  dir: graph
-  package: graph
-  filename_template: gen_resolver_{name}.go
+  dir: ./
+  package: gql
+  filename_template: gen_{name}_impl.go
 
 # Optional: turn on use ` + "`" + `gqlgen:"fieldName"` + "`" + ` tags in your models
 struct_tag: json
@@ -29,7 +29,7 @@ omit_slice_element_pointers: false
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/chunked-app/cortex/gql/graph/model"
+  - "github.com/chunked-app/cortex/server/gql/model"
 
 models:
   ID:

@@ -1,26 +1,26 @@
-package graph
+package gql
+
+//go:generate go run github.com/99designs/gqlgen generate
 
 import (
 	"context"
 
-	"github.com/chunked-app/cortex/chunk"
-	"github.com/chunked-app/cortex/user"
+	"github.com/chunked-app/cortex/core/chunk"
+	"github.com/chunked-app/cortex/core/user"
 )
-
-//go:generate go run github.com/99designs/gqlgen generate
 
 // This file will not be regenerated automatically.
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	ChunksAPI ChunksAPI
 	UsersAPI  UsersAPI
+	ChunksAPI ChunksAPI
 }
 
 type UsersAPI interface {
 	User(ctx context.Context, id string) (*user.User, error)
-	Register(ctx context.Context, u user.User) (*user.User, error)
+	RegisterUser(ctx context.Context, u user.User) (*user.User, error)
 }
 
 type ChunksAPI interface {

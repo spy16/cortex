@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/chunked-app/cortex/chunk"
+	"github.com/chunked-app/cortex/core/chunk"
+	"github.com/chunked-app/cortex/core/user"
 	"github.com/chunked-app/cortex/pkg/errors"
-	"github.com/chunked-app/cortex/user"
 )
 
 type Store struct {
@@ -17,7 +17,7 @@ type Store struct {
 	users map[string]user.User
 }
 
-func (mem *Store) GetUser(ctx context.Context, id string) (*user.User, error) {
+func (mem *Store) FetchUser(ctx context.Context, id string) (*user.User, error) {
 	mem.uMu.RLock()
 	defer mem.uMu.RUnlock()
 
@@ -34,7 +34,9 @@ func (mem *Store) CreateUser(ctx context.Context, u user.User) error {
 
 	if mem.users == nil {
 		mem.users = map[string]user.User{}
-	} else if _, exists := mem.users[u.ID]; exists {
+	}
+
+	if _, exists := mem.users[u.ID]; exists {
 		return errors.ErrConflict
 	}
 
