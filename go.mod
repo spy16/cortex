@@ -4,7 +4,9 @@ go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.17.5
+	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/go-chi/chi v1.5.4
+	github.com/lib/pq v1.10.1
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/rs/cors v1.8.2
 	github.com/sirupsen/logrus v1.8.1

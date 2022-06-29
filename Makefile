@@ -2,7 +2,7 @@ VERSION:=$(shell git describe --abbrev=0 --tags)
 COMMIT:=$(shell git rev-list --abbrev-commit -1 HEAD)
 BUILT_ON:=$(shell date +'%Y-%m-%d')
 
-all: generate tidy test build
+all: tidy generate test build
 
 generate:
 	@echo "Running go generate..."
