@@ -29,14 +29,6 @@ type Mutation {
     deleteChunk(id: String!): Chunk!
 }
 
-"Kind represents the type of data in a chunk."
-enum Kind {
-    USER,
-    NOTE,
-    TODO,
-    IMAGE,
-}
-
 "User represents an entity that interacts with the system."
 type User {
     id: String!
@@ -44,6 +36,12 @@ type User {
     email: String!
     created_at: Time!
     updated_at: Time!
+
+    chunks(filter: ListFilter): [Chunk!]! @goField(forceResolver: true)
+}
+
+input ListFilter {
+    kind: String
 }
 
 "Chunk represents a piece of information."
@@ -52,23 +50,21 @@ type Chunk {
     kind: String!
     data: String!
     tags: [String!]
-    children: [Chunk!]! @goField(forceResolver: true)
     author_id: String!
-    parent_id: String
     created_at: Time!
     updated_at: Time!
 }
 
 input UpdateRequest {
     tags: [String!]
-    parent: String
+    kind: String
+    data: String
 }
 
 input CreateRequest {
-    kind: Kind!
+    kind: String!
     data: String!
     tags: [String!]
-    parent_id: String
 }
 
 input RegisterUserRequest {

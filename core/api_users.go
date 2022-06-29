@@ -2,9 +2,7 @@ package core
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/chunked-app/cortex/core/chunk"
 	"github.com/chunked-app/cortex/core/user"
 	"github.com/chunked-app/cortex/pkg/errors"
 )
@@ -34,16 +32,6 @@ func (api *API) RegisterUser(ctx context.Context, u user.User) (*user.User, erro
 				WithCausef(err.Error())
 		}
 		return nil, errors.ErrInternal.WithCausef(err.Error())
-	}
-
-	ch := chunk.Chunk{
-		ID:     fmt.Sprintf("u-%s", u.ID),
-		Data:   &chunk.UserData{},
-		Author: u.ID,
-	}
-
-	if _, err := api.createAny(ctx, ch); err != nil {
-		return nil, err
 	}
 
 	return &u, nil

@@ -3,9 +3,6 @@
 package model
 
 import (
-	"fmt"
-	"io"
-	"strconv"
 	"time"
 )
 
@@ -15,18 +12,19 @@ type Chunk struct {
 	Kind      string    `json:"kind"`
 	Data      string    `json:"data"`
 	Tags      []string  `json:"tags"`
-	Children  []*Chunk  `json:"children"`
 	AuthorID  string    `json:"author_id"`
-	ParentID  *string   `json:"parent_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type CreateRequest struct {
-	Kind     Kind     `json:"kind"`
-	Data     string   `json:"data"`
-	Tags     []string `json:"tags"`
-	ParentID *string  `json:"parent_id"`
+	Kind string   `json:"kind"`
+	Data string   `json:"data"`
+	Tags []string `json:"tags"`
+}
+
+type ListFilter struct {
+	Kind *string `json:"kind"`
 }
 
 type RegisterUserRequest struct {
@@ -36,8 +34,9 @@ type RegisterUserRequest struct {
 }
 
 type UpdateRequest struct {
-	Tags   []string `json:"tags"`
-	Parent *string  `json:"parent"`
+	Tags []string `json:"tags"`
+	Kind *string  `json:"kind"`
+	Data *string  `json:"data"`
 }
 
 // User represents an entity that interacts with the system.
@@ -47,50 +46,5 @@ type User struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// Kind represents the type of data in a chunk.
-type Kind string
-
-const (
-	KindUser  Kind = "USER"
-	KindNote  Kind = "NOTE"
-	KindTodo  Kind = "TODO"
-	KindImage Kind = "IMAGE"
-)
-
-var AllKind = []Kind{
-	KindUser,
-	KindNote,
-	KindTodo,
-	KindImage,
-}
-
-func (e Kind) IsValid() bool {
-	switch e {
-	case KindUser, KindNote, KindTodo, KindImage:
-		return true
-	}
-	return false
-}
-
-func (e Kind) String() string {
-	return string(e)
-}
-
-func (e *Kind) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = Kind(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Kind", str)
-	}
-	return nil
-}
-
-func (e Kind) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
+	Chunks    []*Chunk  `json:"chunks"`
 }

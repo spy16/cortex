@@ -11,30 +11,6 @@ import (
 	"github.com/chunked-app/cortex/server/gql/model"
 )
 
-func (r *chunkResolver) Children(ctx context.Context, obj *model.Chunk) ([]*model.Chunk, error) {
-	curUser := user.From(ctx)
-
-	opts := chunk.ListOptions{
-		Author: curUser.ID,
-		Parent: obj.ID,
-	}
-
-	chunks, err := r.ChunksAPI.List(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	var res []*model.Chunk
-	for _, ch := range chunks {
-		m, err := model.ChunkFrom(ch)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, m)
-	}
-	return res, nil
-}
-
 func (r *mutationResolver) RegisterUser(ctx context.Context, req *model.RegisterUserRequest) (*model.User, error) {
 	u := user.User{
 		ID:    req.ID,
@@ -58,19 +34,11 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, req *model.Register
 func (r *mutationResolver) CreateChunk(ctx context.Context, req model.CreateRequest) (*model.Chunk, error) {
 	curUser := user.From(ctx)
 
-	d, err := chunk.ParseData(req.Kind.String(), req.Data)
-	if err != nil {
-		return nil, err
-	}
-
 	ch := chunk.Chunk{
-		Data:   d,
+		Kind:   req.Kind,
+		Data:   req.Data,
 		Tags:   req.Tags,
 		Author: curUser.ID,
-	}
-
-	if req.ParentID != nil {
-		ch.Parent = *req.ParentID
 	}
 
 	createdCh, err := r.ChunksAPI.Create(ctx, ch)
@@ -125,8 +93,31 @@ func (r *queryResolver) User(ctx context.Context, id string) (*model.User, error
 	}, nil
 }
 
-// Chunk returns ChunkResolver implementation.
-func (r *Resolver) Chunk() ChunkResolver { return &chunkResolver{r} }
+func (r *userResolver) Chunks(ctx context.Context, obj *model.User, filter *model.ListFilter) ([]*model.Chunk, error) {
+	opts := chunk.ListOptions{
+		Author: obj.ID,
+	}
+	if filter != nil {
+		if filter.Kind != nil {
+			opts.Kind = *filter.Kind
+		}
+	}
+
+	chunks, err := r.ChunksAPI.List(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*model.Chunk
+	for _, ch := range chunks {
+		m, err := model.ChunkFrom(ch)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, m)
+	}
+	return res, nil
+}
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -134,6 +125,9 @@ func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
-type chunkResolver struct{ *Resolver }
+// User returns UserResolver implementation.
+func (r *Resolver) User() UserResolver { return &userResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type userResolver struct{ *Resolver }

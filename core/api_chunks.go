@@ -2,13 +2,15 @@ package core
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/chunked-app/cortex/core/chunk"
+	"github.com/chunked-app/cortex/core/user"
 	"github.com/chunked-app/cortex/pkg/errors"
 )
 
 func (api *API) Get(ctx context.Context, id string) (*chunk.Chunk, error) {
+	u := user.From(ctx)
+
 	ch, err := api.Chunks.Get(ctx, id)
 	if err != nil {
 		if errors.Is(err, errors.ErrNotFound) {
@@ -17,6 +19,9 @@ func (api *API) Get(ctx context.Context, id string) (*chunk.Chunk, error) {
 				WithCausef(err.Error())
 		}
 		return nil, errors.ErrInternal.WithCausef(err.Error())
+	} else if u.ID != ch.Author {
+		return nil, errors.ErrForbidden.
+			WithCausef("user '%s' is requesting chunk created by '%s'", u.ID, ch.Author)
 	}
 
 	return ch, nil
@@ -38,11 +43,23 @@ func (api *API) List(ctx context.Context, opts chunk.ListOptions) ([]chunk.Chunk
 }
 
 func (api *API) Create(ctx context.Context, ch chunk.Chunk) (*chunk.Chunk, error) {
-	if ch.Data != nil && ch.Data.Kind() == chunk.KindUser {
-		return nil, errors.ErrInvalid.WithMsgf("cannot create a chunk of kind 'USER'")
+	if err := ch.Validate(); err != nil {
+		return nil, err
+	} else if err := api.Registry.Validate(ch.Kind, ch.Data); err != nil {
+		return nil, err
 	}
 
-	return api.createAny(ctx, ch)
+	if _, err := api.User(ctx, ch.Author); err != nil {
+		if errors.Is(err, errors.ErrNotFound) {
+			return nil, errors.ErrInvalid.WithCausef(err.Error())
+		}
+		return nil, errors.ErrInternal.WithCausef(err.Error())
+	}
+
+	if err := api.Chunks.Create(ctx, ch); err != nil {
+		return nil, errors.ErrInternal.WithCausef(err.Error())
+	}
+	return &ch, nil
 }
 
 func (api *API) Update(ctx context.Context, id string, upd chunk.Updates) (*chunk.Chunk, error) {
@@ -70,26 +87,4 @@ func (api *API) Delete(ctx context.Context, id string) (*chunk.Chunk, error) {
 	}
 
 	return ch, nil
-}
-
-func (api *API) createAny(ctx context.Context, ch chunk.Chunk) (*chunk.Chunk, error) {
-	if err := ch.Validate(); err != nil {
-		return nil, err
-	}
-
-	if ch.Data.Kind() != chunk.KindUser && ch.Parent == "" {
-		ch.Parent = fmt.Sprintf("u-%s", ch.Author)
-	}
-
-	if _, err := api.User(ctx, ch.Author); err != nil {
-		if errors.Is(err, errors.ErrNotFound) {
-			return nil, errors.ErrInvalid.WithCausef(err.Error())
-		}
-		return nil, errors.ErrInternal.WithCausef(err.Error())
-	}
-
-	if err := api.Chunks.Create(ctx, ch); err != nil {
-		return nil, errors.ErrInternal.WithCausef(err.Error())
-	}
-	return &ch, nil
 }

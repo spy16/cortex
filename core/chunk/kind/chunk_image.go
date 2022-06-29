@@ -1,4 +1,4 @@
-package chunk
+package kind
 
 import (
 	"net/url"
@@ -13,9 +13,7 @@ type ImageData struct {
 	Caption string `json:"caption,omitempty"`
 }
 
-func (data ImageData) Kind() string { return KindImage }
-
-func (data *ImageData) Validate() error {
+func (data *ImageData) ValidateData() error {
 	data.URL = strings.TrimSpace(data.URL)
 	data.Alt = strings.TrimSpace(data.Alt)
 	data.Caption = strings.TrimSpace(data.Caption)

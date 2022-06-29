@@ -12,12 +12,12 @@ type Store interface {
 }
 
 type ListOptions struct {
-	Parent string `json:"parent"`
+	Kind   string `json:"kind"`
 	Author string `json:"author"`
 }
 
 func (opts ListOptions) IsMatch(ch Chunk) bool {
-	parentMatch := opts.Parent == "" || ch.Parent == opts.Parent
+	kindMatch := opts.Kind == "" || ch.Kind == opts.Kind
 	authorMatch := opts.Author == "" || ch.Author == opts.Author
-	return parentMatch && authorMatch
+	return kindMatch && authorMatch
 }

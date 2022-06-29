@@ -1,21 +1,12 @@
 package chunk
 
 import (
-	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strings"
 	"time"
 
 	"github.com/chunked-app/cortex/pkg/errors"
-)
-
-// Supported types of chunks.
-const (
-	KindUser  = "USER"
-	KindNote  = "NOTE"
-	KindTodo  = "TODO"
-	KindImage = "IMAGE"
 )
 
 const (
@@ -26,12 +17,18 @@ const (
 // Chunk represents a piece of information written down by a user.
 type Chunk struct {
 	ID        string    `json:"id"`
-	Data      Data      `json:"data"`
+	Kind      string    `json:"kind"`
+	Data      string    `json:"data"`
 	Tags      []string  `json:"tags"`
 	Author    string    `json:"author"`
-	Parent    string    `json:"parent"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// KindRegistry is responsible for parsing, validating different kinds
+// of chunk data.
+type KindRegistry interface {
+	Validate(kind, data string) error
 }
 
 // Data implementations represent the data of different types of chunks.
@@ -43,41 +40,9 @@ type Data interface {
 // Updates represents modifications to a chunk. Zero-values are treated
 // as no-update.
 type Updates struct {
-	Tags   []string `json:"tags"`
-	Parent string   `json:"parent"`
-}
-
-// ParseData parses the given raw data of specified chunkType into the Data
-// implementation.
-func ParseData(kind, data string) (Data, error) {
-	kind = strings.ToUpper(kind)
-
-	var into Data
-	switch kind {
-	case KindUser:
-		into = &UserData{}
-
-	case KindNote:
-		into = &NoteData{}
-
-	case KindTodo:
-		into = &TodoData{}
-
-	case KindImage:
-		into = &ImageData{}
-
-	default:
-		return nil, errors.ErrInvalid.WithMsgf("invalid kind '%s'", kind)
-	}
-
-	if err := json.Unmarshal([]byte(data), into); err != nil {
-		return nil, errors.ErrInvalid.
-			WithMsgf("failed to interpret data as '%s'", kind).
-			WithCausef(err.Error())
-	} else if err := into.Validate(); err != nil {
-		return nil, err
-	}
-	return into, nil
+	Tags []string `json:"tags"`
+	Kind string   `json:"kind"`
+	Data string   `json:"data"`
 }
 
 func (c *Chunk) Validate() error {
@@ -87,10 +52,8 @@ func (c *Chunk) Validate() error {
 		c.UpdatedAt = c.CreatedAt
 	}
 
-	if c.Data == nil {
-		return errors.ErrInvalid.WithMsgf("chunk data must be set")
-	} else if err := c.Data.Validate(); err != nil {
-		return err
+	if c.Kind == "" {
+		return errors.ErrInvalid.WithMsgf("chunk kind must be set")
 	}
 
 	c.Author = strings.TrimSpace(c.Author)
@@ -102,22 +65,17 @@ func (c *Chunk) Validate() error {
 }
 
 func (c *Chunk) Apply(upd Updates) {
-	if upd.Parent != "" {
-		c.Parent = upd.Parent
-	}
-
 	if upd.Tags != nil {
 		c.Tags = cleanTags(upd.Tags)
 	}
 }
 
 func (c *Chunk) genID() error {
-	kind := c.Data.Kind()
-	if kind == KindUser {
-		return nil
+	if c.Kind == "" {
+		return errors.ErrInternal.WithCausef("chunk kind not set")
 	}
 
-	idPrefix := strings.ToLower(string(kind[0]))
+	idPrefix := strings.ToLower(string(c.Kind[0]))
 	idSuffix := randString(genIDLen, genIDChars)
 	c.ID = fmt.Sprintf("%s-%s", idPrefix, idSuffix)
 	return nil

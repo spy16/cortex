@@ -1,4 +1,4 @@
-package chunk
+package kind
 
 import (
 	"strings"
@@ -16,9 +16,7 @@ type TodoItem struct {
 	Done bool   `json:"done"`
 }
 
-func (data TodoData) Kind() string { return KindTodo }
-
-func (data *TodoData) Validate() error {
+func (data *TodoData) ValidateData() error {
 	items := data.Items
 	data.Items = nil
 	for _, item := range items {

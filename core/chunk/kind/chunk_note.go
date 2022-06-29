@@ -1,4 +1,4 @@
-package chunk
+package kind
 
 import (
 	"strings"
@@ -15,9 +15,7 @@ type NoteData struct {
 	Format string `json:"format"`
 }
 
-func (data NoteData) Kind() string { return KindNote }
-
-func (data *NoteData) Validate() error {
+func (data *NoteData) ValidateData() error {
 	data.Text = strings.TrimSpace(data.Text)
 	data.Format = strings.ToLower(strings.TrimSpace(data.Format))
 

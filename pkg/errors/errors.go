@@ -11,6 +11,7 @@ var (
 	ErrInvalid     = Error{Code: "bad_request", Message: "Request is not valid"}
 	ErrNotFound    = Error{Code: "not_found", Message: "Requested entity not found"}
 	ErrConflict    = Error{Code: "conflict", Message: "An entity with conflicting identifier exists"}
+	ErrForbidden   = Error{Code: "forbidden", Message: "You are not authorised for the requested action"}
 	ErrInternal    = Error{Code: "internal_error", Message: "Some unexpected error occurred"}
 	ErrUnsupported = Error{Code: "unsupported", Message: "Requested feature is not supported"}
 )
